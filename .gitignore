@@ -1,0 +1,10 @@
+#credentials
+/.env
+
+# indev
+/dist
+/node_modules
+/.vscode
+
+# debug cmds
+eval.ts

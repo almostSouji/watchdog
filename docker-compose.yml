@@ -1,0 +1,13 @@
+version: '3'
+services:
+  bot:
+      image: cerberus
+      build:
+        context: ./
+        dockerfile: Dockerfile
+      restart: unless-stopped
+      env_file:
+          - ./.env
+  redis:
+    image: redis:alpine
+    command: ["redis-server", "--appendonly", "yes"]
