@@ -9,16 +9,9 @@ async function init() {
 		owner: process.env.OWNER!.split(','),
 		prefix: process.env.PREFIX!
 	});
+
 	await client.commands.read(resolve(__dirname, './commands'));
-
-	client.on('message', async message => {
-		console.log(`${message.author.username}#${message.author.discriminator} | ${message.content}`);
-		await client.commands.handle(message);
-	});
-
-	client.on('ready', () => {
-		client.logger.info(`Client ready on ${client.user!.tag} (${client.user!.id})`);
-	});
+	await client.events.read(resolve(__dirname, './events'));
 
 	client.login(process.env.TOKEN);
 }
