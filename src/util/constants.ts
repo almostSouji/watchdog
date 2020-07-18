@@ -26,7 +26,7 @@ export const MESSAGES = {
 				NO_SUB_COMMAND: (commands: string[]) => `${PREFIXES.FAIL}Please provide a valid sub command out of: \`${commands.join(', ')}\`.`,
 				MISSING_ARGUMENT: (arg: string) => `${PREFIXES.FAIL}Missing argument: \`${arg}\`.`,
 				USAGE: (usage: string) => `${PREFIXES.FAIL}Command usage: \`${usage}\`.`,
-				RESOLVE: (query: string, type: string) => `${PREFIXES.FAIL}I can not resolve \`${query}\` to \`${type}\`.`
+				RESOLVE: (query: string, type: string) => `${PREFIXES.FAIL}I can not resolve \`${query}\` to a \`${type}\`.`
 			}
 		},
 		RESOURCE: {
