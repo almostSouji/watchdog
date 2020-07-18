@@ -3,14 +3,16 @@ import { join } from 'path';
 import { readdirSync } from 'fs';
 import * as Lexure from 'lexure';
 import { CerberusClient } from '../structures/Client';
-import { Message } from 'discord.js';
+import { Message, User, Guild } from 'discord.js';
 import * as chalk from 'chalk';
+import { EventEmitter } from 'events';
 
-export default class CommandHandler {
+export default class CommandHandler extends EventEmitter {
 	private readonly commands = new Map<string, Command>();
 	public readonly client: CerberusClient;
 
 	public constructor(client: CerberusClient) {
+		super();
 		this.client = client;
 	}
 
@@ -38,23 +40,47 @@ export default class CommandHandler {
 		return undefined;
 	}
 
-	public async handle(message: Message): Promise<boolean> {
+	public async prefix(message: Message): Promise<string> {
+		if (message.guild) {
+			const gp = await this.client.red.hget(message.guild.id, 'prefix');
+			return gp ?? await this.client.red.hget('global', 'prefix') ?? this.client.config.prefix;
+		}
+		return await this.client.red.hget('global', 'prefix') ?? this.client.config.prefix;
+	}
+
+	public async isOwner(user: User): Promise<boolean> {
+		return Boolean(await this.client.red.sismember('bot:owners', user.id));
+	}
+
+	public async overrideRoles(guild: Guild): Promise<string[]> {
+		const res = await this.client.red.smembers(`overrideroles:${guild.id}`);
+		return res;
+	}
+
+	public async handle(message: Message): Promise<Message|void> {
 		const { content, guild, author: { tag } } = message;
-		if (!guild) return false;
+		if (!guild) return;
 		const lexer = new Lexure.Lexer(content)
 			.setQuotes([
 				['"', '"'],
 				['“', '”']
 			]);
 		const tokens = lexer.lex();
-		const prefix = await this.client.prefix(message);
+		const prefix = await this.prefix(message);
 
 		const commandPart = Lexure.extractCommand(s => s.startsWith(prefix) ? prefix.length : null, tokens);
-		if (!commandPart) return false;
+		if (!commandPart) return;
 
 		const command = this.resolve(commandPart.value);
-		if (!command) return false;
-		if (command.ownerOnly && !this.client.isOwner(message.author.id)) return false;
+		if (!command) return;
+		if (command.ownerOnly && !this.isOwner(message.author)) {
+			this.emit('blocked', 'ownerOnly', command, message);
+			return;
+		}
+		if (command.guildOnly && !guild) {
+			this.emit('blocked', 'guildOnly', command, message);
+			return;
+		}
 
 		const parser = new Lexure.Parser(tokens)
 			.setUnorderedStrategy(Lexure.longShortStrategy());

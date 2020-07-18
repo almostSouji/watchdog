@@ -6,13 +6,16 @@ export default class extends Command {
 	public constructor(handler: CommandHandler) {
 		super('ping', handler, {
 			aliases: ['pong'],
-			description: 'pingpong',
+			description: {
+				content: 'Just a test command, really',
+				usage: '',
+				flags: {}
+			},
 			ownerOnly: true
 		});
 	}
 
-	public async execute(message: Message): Promise<boolean> {
-		message.reply('pong');
-		return true;
+	public async execute(message: Message): Promise<Message|void> {
+		return message.reply('pong');
 	}
 }

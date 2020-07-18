@@ -1,26 +1,45 @@
 import * as Lexure from 'lexure';
 import CommandHandler from '../handlers/CommandHandler';
-import { Message } from 'discord.js';
+import { Message, BitFieldResolvable, PermissionString } from 'discord.js';
+
+interface CommandFlags {
+	[key: string]: string;
+}
+
+interface CommandDescription {
+	content: string;
+	usage: string;
+	flags: CommandFlags;
+}
 
 interface CommandOptions {
 	aliases?: string[];
-	description?: string;
 	ownerOnly?: boolean;
+	guildOnly?: boolean;
+	description: CommandDescription;
+	clientPermissions?: BitFieldResolvable<PermissionString>;
+	userPermissions?: BitFieldResolvable<PermissionString>;
 }
 
 export abstract class Command {
 	public id: string;
 	public aliases: string[];
 	public ownerOnly: boolean;
-	public description: string;
+	public guildOnly: boolean;
+	public description: CommandDescription;
+	public clientPermissions: BitFieldResolvable<PermissionString>;
+	public userPermissions: BitFieldResolvable<PermissionString>;
 	public handler: CommandHandler;
-	public constructor(id: string, handler: CommandHandler, data?: CommandOptions) {
+	public constructor(id: string, handler: CommandHandler, data: CommandOptions) {
 		this.id = id;
 		this.aliases = data?.aliases ?? [];
-		this.description = data?.description ?? '';
-		this.ownerOnly = data?.ownerOnly ?? true;
+		this.description = data?.description;
+		this.ownerOnly = data.ownerOnly ?? false;
+		this.guildOnly = data.guildOnly ?? false;
+		this.clientPermissions = data.clientPermissions ?? 0;
+		this.userPermissions = data.userPermissions ?? 0;
 		this.handler = handler;
 	}
 
-	public abstract async execute(message: Message, args: Lexure.Args): Promise<boolean>;
+	public abstract async execute(message: Message, args: Lexure.Args): Promise<Message|void>;
 }

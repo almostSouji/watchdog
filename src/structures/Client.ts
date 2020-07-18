@@ -1,11 +1,11 @@
 
-import { Client, ClientOptions, Guild, GuildChannel, Role, Message, MessageMentions, RoleResolvable, GuildChannelResolvable, BaseManager } from 'discord.js';
+import { Client, ClientOptions, Guild, GuildChannel, Role, Message, RoleResolvable, GuildChannelResolvable, BaseManager } from 'discord.js';
 import CommandHandler from '../handlers/CommandHandler';
-import { logger } from '../utils/logger';
+import { logger } from '../util/logger';
 import * as Redis from 'ioredis';
 import { Logger } from 'winston';
 import EventHandler from '../handlers/EventHandler';
-const { CHANNELS_PATTERN, ROLES_PATTERN } = MessageMentions;
+import { CHANNELS_PATTERN, ROLES_PATTERN } from '../util/constants';
 
 interface CerberusConfig {
 	owner: string[];
@@ -18,7 +18,6 @@ declare module 'discord.js' {
 		readonly config: CerberusConfig;
 		readonly logger: Logger;
 		readonly red: Redis.Redis;
-		prefix(message: Message): Promise<string>;
 	}
 }
 
@@ -35,19 +34,8 @@ export class CerberusClient extends Client {
 		this.config = config;
 	}
 
-	public async prefix(message: Message): Promise<string> {
-		if (message.guild) {
-			const gp = await this.red.hget(message.guild.id, 'prefix');
-			return gp ?? await this.red.hget('global', 'prefix') ?? this.config.prefix;
-		}
-		return await this.red.hget('global', 'prefix') ?? this.config.prefix;
-	}
-
-	public async isOwner(user_id: string): Promise<boolean> {
-		return Boolean(await this.red.sismember('bot:owners', user_id));
-	}
-
 	private resolveFromManager<T extends GuildChannel | Role, S extends GuildChannelResolvable | RoleResolvable>(query: string, reg: RegExp, manager: BaseManager<string, T, S>, predicate?: (p1: T) => boolean): T | undefined {
+		reg = new RegExp(reg);
 		const match = reg.exec(query);
 		if (match) {
 			query = match[1];
