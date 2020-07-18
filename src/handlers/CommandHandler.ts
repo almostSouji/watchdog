@@ -72,7 +72,7 @@ export default class CommandHandler extends EventEmitter {
 
 		const command = this.resolve(commandPart.value);
 		if (!command) return;
-		if (command.ownerOnly && !this.isOwner(message.author)) {
+		if (command.ownerOnly && !(await this.isOwner(message.author))) {
 			this.emit('blocked', 'ownerOnly', command, message);
 			return;
 		}
