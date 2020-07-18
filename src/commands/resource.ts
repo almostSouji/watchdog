@@ -31,6 +31,9 @@ export default class extends Command {
 		const { guild, author, member } = message;
 		if (!guild) return;
 		const subCommand = args.single();
+		const overrideRoles = await this.handler.overrideRoles(guild);
+		const override = member?.roles.cache.some(r => overrideRoles.includes(r.id));
+
 		if (!subCommand || !this.subCommands.includes(subCommand)) {
 			return message.channel.send(COMMON.FAIL.NO_SUB_COMMAND(['add', 'edit']));
 		}
@@ -43,8 +46,6 @@ export default class extends Command {
 			if (!channel) {
 				return message.channel.send(COMMON.FAIL.RESOLVE(channelArgs, 'channel'));
 			}
-			const overrideRoles = await this.handler.overrideRoles(guild);
-			const override = member?.roles.cache.some(r => overrideRoles.includes(r.id));
 			if (!channel.permissionsFor(author)?.has(this.userPermissions) && !override) {
 				return message.channel.send(RESOURCE.FAIL.MISSING_PERMISSIONS_USER);
 			}
@@ -81,7 +82,7 @@ export default class extends Command {
 			await client.red.del(`resource:${messageArgs}`);
 			return message.channel.send(RESOURCE.FAIL.NOT_FOUND);
 		}
-		if (!channel.permissionsFor(author)?.has(this.userPermissions)) {
+		if (!channel.permissionsFor(author)?.has(this.userPermissions) && !override) {
 			return message.channel.send(RESOURCE.FAIL.MISSING_PERMISSIONS_USER);
 		}
 		try {
