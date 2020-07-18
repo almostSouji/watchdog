@@ -59,15 +59,14 @@ export default class extends Command {
 			return message.channel.send(COMMON.FAIL.RESOLVE(roleArgs, 'role'));
 		}
 		if (this.addAliases.includes(subCommand)) {
-			const res = await client.red.sadd(`overrideroles:${guild.id}`, role.id);
-			client.red.sadd(`guilddata:${guild.id}`, `overrideroles:${guild.id}`);
+			const res = await client.red.sadd(`guild:${guild.id}:overrideroles`, role.id);
 			if (!res) {
 				return message.channel.send(STAFF.FAIL.ALREADY_STAFF(role.name));
 			}
 			return message.channel.send(STAFF.SUCCESS.ADDED(role.name));
 		}
 		if (this.removeAliases.includes(subCommand)) {
-			const res = await client.red.srem(`overrideroles:${guild.id}`, role.id);
+			const res = await client.red.srem(`guild:${guild.id}:overrideroles`, role.id);
 			if (!res) {
 				return message.channel.send(STAFF.FAIL.NOT_STAFF(role.name));
 			}

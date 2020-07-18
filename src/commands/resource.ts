@@ -3,7 +3,7 @@ import CommandHandler from '../handlers/CommandHandler';
 import * as Lexure from 'lexure';
 import { Message, NewsChannel, TextChannel } from 'discord.js';
 import { Embed } from '../util/Embed';
-import { MESSAGES } from '../util/constants';
+import { MESSAGES, REDIS, SNOWFLAKE_PATTERN } from '../util/constants';
 
 const { COMMANDS: { COMMON, RESOURCE } } = MESSAGES;
 
@@ -28,7 +28,7 @@ export default class extends Command {
 
 	public async execute(message: Message, args: Lexure.Args): Promise<Message|void> {
 		const { client } = this.handler;
-		const { guild, author, member } = message;
+		const { guild, author, member, channel } = message;
 		if (!guild) return;
 		const subCommand = args.single();
 		const overrideRoles = await this.handler.overrideRoles(guild);
@@ -59,8 +59,7 @@ export default class extends Command {
 				return message.channel.send(RESOURCE.FAIL.MISSING_PERMISSIONS_BOT);
 			}
 			const msg = await channel.send(embed);
-			await client.red.set(`resource:${msg.id}`, msg.channel.id);
-			client.red.sadd(`guilddata:${guild.id}`, `resource:${msg.id}`);
+			await client.red.set(`guild:${guild.id}:channel:${channel.id}:resource:${msg.id}`, msg.channel.id);
 			const prefix = await this.handler.prefix(message);
 			return message.channel.send(RESOURCE.SUCCESS.SENT(prefix, msg.id));
 		}
@@ -73,31 +72,30 @@ export default class extends Command {
 			return message.channel.send(RESOURCE.FAIL.MISSING_CONTENT);
 		}
 
-		const channelID = await client.red.get(`resource:${messageArgs}`);
+		const channelID = await client.red.get(`guild:${guild.id}:channel:${channel.id}:resource:${messageArgs}`);
 		if (!channelID) {
 			return message.channel.send(RESOURCE.FAIL.NOT_FOUND);
 		}
 
-		const channel = await client.resolveChannel(channelID, guild, ['text', 'news']) as TextChannel | NewsChannel | undefined;
-		if (!channel) {
-			await client.red.del(`resource:${messageArgs}`);
-			client.logger.log('cleanup', `resource:${messageArgs}`);
-			client.red.srem(`guilddata:${guild.id}`, `resource:${messageArgs}`);
-			client.logger.log('cleanup', `guilddata:${guild.id} ▶️ resource:${messageArgs}`);
+		const targetChannel = await client.resolveChannel(channelID, guild, ['text', 'news']) as TextChannel | NewsChannel | undefined;
+		if (!targetChannel) {
+			if (new RegExp(SNOWFLAKE_PATTERN).exec(channelID)) {
+				client._cleanup([REDIS.CHANNEL_PATTERN(channelID)]);
+			}
 			return message.channel.send(RESOURCE.FAIL.NOT_FOUND);
 		}
-		if (!channel.permissionsFor(author)?.has(this.userPermissions) && !override) {
+		if (!targetChannel.permissionsFor(author)?.has(this.userPermissions) && !override) {
 			return message.channel.send(RESOURCE.FAIL.MISSING_PERMISSIONS_USER);
 		}
 		try {
-			const msg = await channel.messages.fetch(messageArgs);
+			const msg = await targetChannel.messages.fetch(messageArgs);
 			const embed = new Embed().setDescription(content).shorten();
 			await msg.edit(embed);
 			return message.channel.send(RESOURCE.SUCCESS.EDITED);
 		} catch {
-			await client.red.del(`resource:${messageArgs}`);
-			client.red.srem(`guilddata:${guild.id}`, `resource:${messageArgs}`);
-			client.logger.log('cleanup', `guilddata:${guild.id} ▶️ resource:${messageArgs}`);
+			if (new RegExp(SNOWFLAKE_PATTERN).exec(messageArgs)) {
+				client._cleanup([REDIS.RESOURCE_PATTERN(messageArgs)]);
+			}
 			return message.channel.send(RESOURCE.FAIL.NOT_FOUND);
 		}
 	}

@@ -1,6 +1,7 @@
 import EventHandler from '../handlers/EventHandler';
 import { Event } from '../structures/Event';
 import { Message } from 'discord.js';
+import { REDIS } from '../util/constants';
 
 export default class extends Event {
 	public constructor(handler: EventHandler) {
@@ -15,10 +16,7 @@ export default class extends Event {
 			return false;
 		}
 		const { client } = this.handler;
-		client.red.del(`resource:${message.id}`);
-		client.logger.log('cleanup', `resource:${message.id}`);
-		client.red.srem(`guilddata:${message.guild.id}`, `resource:${message.id}`);
-		client.logger.log('cleanup', `guilddata:${message.guild.id} ▶️ resource:${message.id}`);
+		client._cleanup([REDIS.RESOURCE_PATTERN(message.id)]);
 		return true;
 	}
 }

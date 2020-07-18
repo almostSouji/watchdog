@@ -42,10 +42,10 @@ export default class CommandHandler extends EventEmitter {
 
 	public async prefix(message: Message): Promise<string> {
 		if (message.guild) {
-			const gp = await this.client.red.hget(message.guild.id, 'prefix');
-			return gp ?? await this.client.red.hget('global', 'prefix') ?? this.client.config.prefix;
+			const gp = await this.client.red.hget(`guild:${message.guild.id}:settings`, 'prefix');
+			return gp ?? await this.client.red.hget('global:settings', 'prefix') ?? this.client.config.prefix;
 		}
-		return await this.client.red.hget('global', 'prefix') ?? this.client.config.prefix;
+		return await this.client.red.hget('global:settings', 'prefix') ?? this.client.config.prefix;
 	}
 
 	public async isOwner(user: User): Promise<boolean> {
@@ -53,7 +53,7 @@ export default class CommandHandler extends EventEmitter {
 	}
 
 	public async overrideRoles(guild: Guild): Promise<string[]> {
-		const res = await this.client.red.smembers(`overrideroles:${guild.id}`);
+		const res = await this.client.red.smembers(`guild:${guild.id}:overrideroles`);
 		return res;
 	}
 

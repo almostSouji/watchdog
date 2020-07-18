@@ -1,5 +1,5 @@
 
-import { Client, ClientOptions, Guild, GuildChannel, Role, Message, RoleResolvable, GuildChannelResolvable, BaseManager } from 'discord.js';
+import { Client, ClientOptions, Guild, GuildChannel, Role, RoleResolvable, GuildChannelResolvable, BaseManager } from 'discord.js';
 import CommandHandler from '../handlers/CommandHandler';
 import { logger } from '../util/logger';
 import * as Redis from 'ioredis';
@@ -65,5 +65,36 @@ export class CerberusClient extends Client {
 
 	public resolveRole(query: string, guild: Guild): Role | undefined {
 		return this.resolveFromManager(query, ROLES_PATTERN, guild.roles);
+	}
+
+	public _scan(pattern: string): Promise<string[]> {
+		return new Promise((resolve, reject) => {
+			const keys: string[] = [];
+			const stream = this.red.scanStream({
+				match: pattern
+			});
+			stream.on('data', resultKeys => {
+				for (const key of resultKeys) {
+					keys.push(key);
+				}
+			});
+			stream.once('end', () => {
+				resolve(keys);
+			});
+			stream.once('error', reject);
+		});
+	}
+
+	public async _cleanup(patterns: string[]): Promise<void> {
+		const keys = [];
+		for (const pattern of patterns) {
+			keys.push(...(await this._scan(pattern)));
+		}
+		this._pruneKeys(keys, `patterns: ${patterns.join(', ')}`);
+	}
+
+	public async _pruneKeys(keys: string[], scope?: string) {
+		this.red.del(keys);
+		this.logger.log('cleanup', `${scope} ▶️ ${keys.join(', ')}`);
 	}
 }

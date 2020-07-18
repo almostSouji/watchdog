@@ -12,8 +12,8 @@ export default class extends Event {
 
 	public async execute(role: Role): Promise<boolean> {
 		const { client } = this.handler;
-		client.red.srem(`overrideroles:${role.guild.id}`, role.id);
-		client.logger.log('cleanup', `overrideroles:${role.guild.id} ▶️ ${role.id}`);
+		client.red.srem(`guild:${role.guild.id}:overrideroles`, role.id);
+		client.logger.log('cleanup', `guild:${role.guild.id}:overrideroles ▶️ ${role.id}`);
 		return true;
 	}
 }

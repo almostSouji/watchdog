@@ -8,8 +8,15 @@ export const EMBED_LIMITS = {
 	FIELD_VALUE: 1024
 };
 
+export const REDIS = {
+	GUILD_PATTERN: (guild: string) => `*guild:${guild}*`,
+	CHANNEL_PATTERN: (channel: string) => `*channel:${channel}*`,
+	RESOURCE_PATTERN: (message: string) => `*resource:${message}*`
+};
+
 export const CHANNELS_PATTERN = /<?#?(\d{17,19})>?/g;
 export const ROLES_PATTERN = /<?@?&?(\d{17,19})>?/g;
+export const SNOWFLAKE_PATTERN = /\d{17, 19}/g;
 
 export const EMBED_DEFAULT_COLOR = 3092790;
 
