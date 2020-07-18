@@ -3,7 +3,7 @@ import { join } from 'path';
 import { readdirSync } from 'fs';
 import * as Lexure from 'lexure';
 import { CerberusClient } from '../structures/Client';
-import { Message, User, Guild } from 'discord.js';
+import { Message, User, Guild, TextChannel } from 'discord.js';
 import * as chalk from 'chalk';
 import { EventEmitter } from 'events';
 
@@ -58,8 +58,7 @@ export default class CommandHandler extends EventEmitter {
 	}
 
 	public async handle(message: Message): Promise<Message|void> {
-		const { content, guild, author: { tag } } = message;
-		if (!guild) return;
+		const { content, guild, author: { tag }, channel } = message;
 		const lexer = new Lexure.Lexer(content)
 			.setQuotes([
 				['"', '"'],
@@ -79,6 +78,10 @@ export default class CommandHandler extends EventEmitter {
 		}
 		if (command.guildOnly && !guild) {
 			this.emit('blocked', 'guildOnly', command, message);
+			return;
+		}
+		if (channel instanceof TextChannel && !channel.permissionsFor(this.client.user!)?.has(['VIEW_CHANNEL', 'SEND_MESSAGES'])) {
+			this.emit('blocked', 'answerImpossible', command, message);
 			return;
 		}
 
