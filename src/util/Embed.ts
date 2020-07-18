@@ -19,7 +19,6 @@ export class Embed extends MessageEmbed {
 
 	public shorten(): Embed {
 		if (this.description && this.description.length > this.limits.description) {
-			console.log(this.description.length);
 			this.description = ellipsis(this.description, this.limits.description);
 		}
 		if (this.title && this.title.length > this.limits.title) {

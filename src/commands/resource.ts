@@ -60,6 +60,7 @@ export default class extends Command {
 			}
 			const msg = await channel.send(embed);
 			await client.red.set(`resource:${msg.id}`, msg.channel.id);
+			client.red.sadd(`guilddata:${guild.id}`, `resource:${msg.id}`);
 			const prefix = await this.handler.prefix(message);
 			return message.channel.send(RESOURCE.SUCCESS.SENT(prefix, msg.id));
 		}
@@ -80,6 +81,9 @@ export default class extends Command {
 		const channel = await client.resolveChannel(channelID, guild, ['text', 'news']) as TextChannel | NewsChannel | undefined;
 		if (!channel) {
 			await client.red.del(`resource:${messageArgs}`);
+			client.logger.log('cleanup', `resource:${messageArgs}`);
+			client.red.srem(`guilddata:${guild.id}`, `resource:${messageArgs}`);
+			client.logger.log('cleanup', `guilddata:${guild.id} ▶️ resource:${messageArgs}`);
 			return message.channel.send(RESOURCE.FAIL.NOT_FOUND);
 		}
 		if (!channel.permissionsFor(author)?.has(this.userPermissions) && !override) {
@@ -92,6 +96,8 @@ export default class extends Command {
 			return message.channel.send(RESOURCE.SUCCESS.EDITED);
 		} catch {
 			await client.red.del(`resource:${messageArgs}`);
+			client.red.srem(`guilddata:${guild.id}`, `resource:${messageArgs}`);
+			client.logger.log('cleanup', `guilddata:${guild.id} ▶️ resource:${messageArgs}`);
 			return message.channel.send(RESOURCE.FAIL.NOT_FOUND);
 		}
 	}

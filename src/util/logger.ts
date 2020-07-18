@@ -5,13 +5,15 @@ const loggerLevels = {
 		error: 0,
 		debug: 1,
 		warn: 2,
-		info: 3
+		info: 3,
+		cleanup: 4
 	},
 	colors: {
 		error: 'red',
 		debug: 'blue',
 		warn: 'yellow',
-		info: 'green'
+		info: 'green',
+		cleanup: 'white'
 	}
 };
 
@@ -31,5 +33,6 @@ export const logger = createLogger({
 			}`;
 		})
 	),
-	transports: new transports.Console()
+	transports: new transports.Console(),
+	level: 'cleanup'
 });

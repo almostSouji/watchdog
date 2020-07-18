@@ -60,6 +60,7 @@ export default class extends Command {
 		}
 		if (this.addAliases.includes(subCommand)) {
 			const res = await client.red.sadd(`overrideroles:${guild.id}`, role.id);
+			client.red.sadd(`guilddata:${guild.id}`, `overrideroles:${guild.id}`);
 			if (!res) {
 				return message.channel.send(STAFF.FAIL.ALREADY_STAFF(role.name));
 			}
