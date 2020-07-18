@@ -94,7 +94,9 @@ export class CerberusClient extends Client {
 	}
 
 	public async _pruneKeys(keys: string[], scope?: string) {
-		this.red.del(keys);
-		this.logger.log('cleanup', `${scope} ▶️ ${keys.join(', ')}`);
+		if (keys.length) {
+			this.red.del(keys);
+			this.logger.log('cleanup', `${scope} ▶️ ${keys.join(', ')}`);
+		}
 	}
 }

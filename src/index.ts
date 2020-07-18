@@ -8,6 +8,8 @@ async function init() {
 	const client = new CerberusClient({
 		owner: process.env.OWNER!.split(','),
 		prefix: process.env.PREFIX!
+	}, {
+		partials: ['MESSAGE']
 	});
 
 	await client.commands.read(resolve(__dirname, './commands'));

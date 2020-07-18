@@ -1,6 +1,5 @@
 import EventHandler from '../handlers/EventHandler';
 import { Event } from '../structures/Event';
-import { REDIS } from '../util/constants';
 import { DMChannel, TextChannel } from 'discord.js';
 
 export default class extends Event {
@@ -16,7 +15,10 @@ export default class extends Event {
 			return false;
 		}
 		const { client } = this.handler;
-		client._cleanup([REDIS.CHANNEL_PATTERN(channel.id)]);
+		const setKey = `guild:${channel.guild.id}:channel:${channel.id}`;
+		const keys = await client.red.smembers(setKey);
+
+		client._cleanup([...keys, setKey]);
 		return true;
 	}
 }

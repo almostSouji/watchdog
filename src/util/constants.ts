@@ -10,7 +10,6 @@ export const EMBED_LIMITS = {
 
 export const REDIS = {
 	GUILD_PATTERN: (guild: string) => `*guild:${guild}*`,
-	CHANNEL_PATTERN: (channel: string) => `*channel:${channel}*`,
 	RESOURCE_PATTERN: (message: string) => `*resource:${message}*`
 };
 
