@@ -4,7 +4,6 @@ LABEL version="0.0.1"
 LABEL maintainer="almostSouji"
 ENV TOKEN= \
 	PREFIX= \
-	OWNER= \
 	FORCE_COLOR=1
 WORKDIR /usr/cerberus
 COPY package.json ./

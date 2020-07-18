@@ -8,7 +8,6 @@ import EventHandler from '../handlers/EventHandler';
 import { CHANNELS_PATTERN, ROLES_PATTERN } from '../util/constants';
 
 interface CerberusConfig {
-	owner: string[];
 	prefix: string;
 }
 

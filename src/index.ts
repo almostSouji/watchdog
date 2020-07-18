@@ -6,7 +6,6 @@ config({ path: resolve(__dirname, '../.env') });
 
 async function init() {
 	const client = new CerberusClient({
-		owner: process.env.OWNER!.split(','),
 		prefix: process.env.PREFIX!
 	}, {
 		partials: ['MESSAGE']
