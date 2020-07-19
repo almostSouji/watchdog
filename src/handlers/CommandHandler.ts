@@ -68,10 +68,16 @@ export default class CommandHandler extends EventEmitter {
 		const prefix = await this.prefix(message);
 
 		const commandPart = Lexure.extractCommand(s => s.startsWith(prefix) ? prefix.length : null, tokens);
-		if (!commandPart) return;
+		if (!commandPart) {
+			this.emit('noCommand', message);
+			return;
+		}
 
 		const command = this.resolve(commandPart.value);
-		if (!command) return;
+		if (!command) {
+			this.emit('noCommand', message);
+			return;
+		}
 		if (command.ownerOnly && !(await this.isOwner(message.author))) {
 			this.emit('blocked', 'ownerOnly', command, message);
 			return;
