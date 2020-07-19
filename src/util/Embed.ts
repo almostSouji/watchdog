@@ -1,6 +1,6 @@
 import { MessageEmbed } from 'discord.js';
 import { ellipsis } from './';
-import { EMBED_LIMITS, EMBED_DEFAULT_COLOR } from './constants';
+import { EMBED_LIMITS, COLORS } from './constants';
 
 export class Embed extends MessageEmbed {
 	private readonly limits = {
@@ -13,7 +13,7 @@ export class Embed extends MessageEmbed {
 		fieldValue: EMBED_LIMITS.FIELD_VALUE
 	};
 
-	public constructor(data = { color: EMBED_DEFAULT_COLOR }) {
+	public constructor(data = { color: COLORS.DEFAULT }) {
 		super(data);
 	}
 
