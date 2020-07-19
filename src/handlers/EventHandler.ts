@@ -13,6 +13,7 @@ export default class EventHandler {
 	public constructor(client: CerberusClient) {
 		this.client = client;
 		this.emitters.set('client', client);
+		this.emitters.set('command', client.commands);
 	}
 
 	public async read(folder: string): Promise<number> {
