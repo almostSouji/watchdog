@@ -22,11 +22,6 @@ export default class ReadyEvent extends Event {
 		const { guild, client, channel, author } = message;
 		if (!guild) return false;
 
-		const shouldPrune = await client.red.sismember(`guild:${guild.id}:prunechannels`, channel.id);
-		if (shouldPrune && message.deletable) {
-			message.delete();
-		}
-
 		const key = `guild:${guild.id}:channel:${channel.id}:phrase:${b64Encode(message.content)}`;
 		const roleID = await client.red.get(key);
 		if (!roleID) return false;
