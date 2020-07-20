@@ -1,5 +1,5 @@
-import EventHandler from '../handlers/EventHandler';
-import { Event } from '../structures/Event';
+import EventHandler from '../../handlers/EventHandler';
+import { Event } from '../../structures/Event';
 import { Role } from 'discord.js';
 
 export default class extends Event {

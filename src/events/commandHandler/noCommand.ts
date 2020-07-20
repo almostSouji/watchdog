@@ -1,8 +1,8 @@
-import EventHandler from '../handlers/EventHandler';
-import { Event } from '../structures/Event';
+import EventHandler from '../../handlers/EventHandler';
+import { Event } from '../../structures/Event';
 import { Message } from 'discord.js';
-import { b64Encode } from '../util';
-import { BACK_OFF } from '../util/constants';
+import { b64Encode } from '../../util';
+import { BACK_OFF } from '../../util/constants';
 
 export default class ReadyEvent extends Event {
 	public constructor(handler: EventHandler) {

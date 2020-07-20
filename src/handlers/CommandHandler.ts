@@ -21,7 +21,7 @@ export default class CommandHandler extends EventEmitter {
 			.filter(file => ['.js', '.ts'].some((ending: string) => file.endsWith(ending)));
 
 		for (const file of commandFiles) {
-			const mod = await import(join(__dirname, '../commands', file));
+			const mod = await import(join(folder, file));
 			const cmdClass = Object.values(mod).find((d: any) => d.prototype instanceof Command) as any;
 			const cmd = new cmdClass(this);
 

@@ -21,7 +21,7 @@ export default class EventHandler {
 			.filter(file => ['.js', '.ts'].some((ending: string) => file.endsWith(ending)));
 
 		for (const file of eventFiles) {
-			const mod = await import(join(__dirname, '../events', file));
+			const mod = await import(join(folder, file));
 			const eventClass = Object.values(mod).find((d: any) => d.prototype instanceof Event) as any;
 			const event = new eventClass(this);
 			const emitter = this.emitters.get(event.emitter);

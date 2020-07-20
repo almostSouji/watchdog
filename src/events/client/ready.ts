@@ -1,5 +1,5 @@
-import EventHandler from '../handlers/EventHandler';
-import { Event } from '../structures/Event';
+import EventHandler from '../../handlers/EventHandler';
+import { Event } from '../../structures/Event';
 
 export default class ReadyEvent extends Event {
 	public constructor(handler: EventHandler) {
