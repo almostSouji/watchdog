@@ -61,7 +61,7 @@ export default class extends Command {
 			const msg = await channel.send(embed);
 			const key = `guild:${guild.id}:resource:${msg.id}`;
 			await client.red.set(key, msg.channel.id);
-			client.red.sadd(`guild:${guild.id}:channel:${msg.channel.id}`, key);
+			client.red.sadd(`guild:${guild.id}:channel:${msg.channel.id}:resources`, key);
 			const prefix = await this.handler.prefix(message);
 			return message.channel.send(RESOURCE.SUCCESS.SENT(prefix, msg.id));
 		}
@@ -82,7 +82,7 @@ export default class extends Command {
 		const targetChannel = await client.resolveChannel(guild, ['text', 'news'], channelID) as TextChannel | NewsChannel | undefined;
 		if (!targetChannel) {
 			if (new RegExp(SNOWFLAKE_PATTERN).exec(channelID)) {
-				const setKey = `guild:${guild.id}:channel:${channelID}`;
+				const setKey = `guild:${guild.id}:channel:${channelID}:resources`;
 				const keys = await client.red.smembers(setKey);
 				client._pruneKeys([...keys, setKey]);
 			}
@@ -100,7 +100,7 @@ export default class extends Command {
 			if (new RegExp(SNOWFLAKE_PATTERN).exec(messageArgs)) {
 				const key = `guild:${guild.id}:resource:${messageArgs}`;
 				client.red.del(key);
-				client.red.srem(`guild:${guild.id}:channel:${targetChannel}`, key);
+				client.red.srem(`guild:${guild.id}:channel:${targetChannel}:resources`, key);
 			}
 			return message.channel.send(RESOURCE.FAIL.NOT_FOUND);
 		}
