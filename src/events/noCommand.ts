@@ -25,9 +25,6 @@ export default class ReadyEvent extends Event {
 		const res = await client.red.hgetall(`guild:${message.guild.id}:settings`);
 
 		if (keys.some(key => !res[key])) {
-			console.log(keys);
-			console.log(res);
-			console.log(0.0);
 			return false;
 		}
 		const channel = client.resolveChannel(res['verification:channel'], message.guild, ['text']);
