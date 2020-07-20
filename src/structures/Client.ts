@@ -17,6 +17,11 @@ declare module 'discord.js' {
 		readonly config: CerberusConfig;
 		readonly logger: Logger;
 		readonly red: Redis.Redis;
+		resolveRole(guild: Guild, query?: string): Role | undefined;
+		resolveChannel(guild: Guild, types: GuildChannelType[], query?: string): GuildChannel | undefined;
+		_scan(pattern: string): Promise<string[]>;
+		_cleanup(patterns: string[]): Promise<void>;
+		_pruneKeys(keys: string[], scope?: string): void;
 	}
 }
 
@@ -58,11 +63,13 @@ export class CerberusClient extends Client {
 		return results.filter(e => e)[0];
 	}
 
-	public resolveChannel(query: string, guild: Guild, types: GuildChannelType[]): GuildChannel | undefined {
+	public resolveChannel(guild: Guild, types: GuildChannelType[], query?: string): GuildChannel | undefined {
+		if (!query) return undefined;
 		return this.resolveFromManager(query, CHANNELS_PATTERN, guild.channels, c => types.includes(c.type));
 	}
 
-	public resolveRole(query: string, guild: Guild): Role | undefined {
+	public resolveRole(guild: Guild, query?: string): Role | undefined {
+		if (!query) return undefined;
 		return this.resolveFromManager(query, ROLES_PATTERN, guild.roles);
 	}
 

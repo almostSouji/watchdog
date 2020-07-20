@@ -1,8 +1,8 @@
 import EventHandler from '../handlers/EventHandler';
 import { Event } from '../structures/Event';
 import { Message } from 'discord.js';
-
-const keys = [`verification:role`, 'verification:phrase', 'verification:channel'];
+import { b64Encode } from '../util';
+import { BACK_OFF } from '../util/constants';
 
 export default class ReadyEvent extends Event {
 	public constructor(handler: EventHandler) {
@@ -13,52 +13,39 @@ export default class ReadyEvent extends Event {
 	}
 
 	private backoff(n: number): number {
-		const days = (2 ** n) / 2;
-		const ms = days * 24 * 60 * 60 * 1000;
-		return ms;
+		const days = BACK_OFF(n);
+		const s = days * 24 * 60 * 60;
+		return s;
 	}
 
 	public async execute(message: Message): Promise<boolean> {
-		const { client } = this.handler;
-		if (!message.guild) return false;
+		const { guild, client, channel, author } = message;
+		if (!guild) return false;
 
-		const res = await client.red.hgetall(`guild:${message.guild.id}:settings`);
-
-		if (keys.some(key => !res[key])) {
-			return false;
-		}
-		const channel = client.resolveChannel(res['verification:channel'], message.guild, ['text']);
-		const role = client.resolveRole(res['verification:role'], message.guild);
-		const phrase = res['verification:phrase'];
-		if (!channel || !role || !phrase) {
-			const keyBase = `guild:${message.guild.id}:settings`;
-			client.red.hdel(keyBase, keys);
-			return false;
-		}
-		if (channel.id !== message.channel.id || !role.editable) {
-			return false;
-		}
-
-		if (message.deletable) {
+		const shouldPrune = await client.red.sismember(`guild:${guild.id}:prunechannels`, channel.id);
+		if (shouldPrune && message.deletable) {
 			message.delete();
 		}
 
-		try {
-			const blocked = await client.red.get(`guild:${message.guild.id}:verification:blocked:${message.author.id}`);
-			if (blocked) return false;
-			message.member?.roles.add(role);
-			const level = await client.red.get(`guild:${message.guild.id}:verification:level:${message.author.id}`);
-			const wait = this.backoff(level ? parseInt(level, 10) : 0);
-			client.red.incr(`guild:${message.guild.id}:verification:level:${message.author.id}`);
-			client.red.set(`guild:${message.guild.id}:verification:blocked:${message.author.id}`, 1, 'PX', wait);
-		} catch {
+		const key = `guild:${guild.id}:channel:${channel.id}:phrase:${b64Encode(message.content)}`;
+		const roleID = await client.red.get(key);
+		if (!roleID) return false;
+		const role = client.resolveRole(guild, roleID);
+		if (!role || !role.editable) {
 			return false;
 		}
 
-		return true;
+		try {
+			const key = `guild:${guild.id}:verification:blocked:${author.id}`;
+			const eligible = await client.red.setnx(key, 1);
+			if (!eligible) return false;
+			message.member?.roles.add(role);
+
+			const level = await client.red.incr(`guild:${guild.id}:verification:level:${author.id}`);
+			client.red.expire(key, this.backoff(level));
+			return true;
+		} catch {
+			return false;
+		}
 	}
 }
-
-
-// guild:id:verification:blocked:userid
-// guild:id:verification:level:userid

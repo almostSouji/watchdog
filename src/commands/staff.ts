@@ -42,7 +42,7 @@ export default class extends Command {
 			const overrideRoles = await this.handler.overrideRoles(guild);
 			const roles = new Collection<string, Role>();
 			for (const id of overrideRoles) {
-				const res = client.resolveRole(id, guild);
+				const res = client.resolveRole(guild, id);
 				if (res) roles.set(res.id, res);
 			}
 			if (!roles.size) {
@@ -54,7 +54,7 @@ export default class extends Command {
 		if (!roleArgs) {
 			return message.channel.send(COMMON.FAIL.MISSING_ARGUMENT('role'));
 		}
-		const role = client.resolveRole(roleArgs, guild);
+		const role = client.resolveRole(guild, roleArgs);
 		if (!role) {
 			return message.channel.send(COMMON.FAIL.RESOLVE(roleArgs, 'role'));
 		}

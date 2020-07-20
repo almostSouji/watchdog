@@ -8,9 +8,13 @@ export const EMBED_LIMITS = {
 	FIELD_VALUE: 1024
 };
 
+export const CONFIRMATION_TIMEOUT = 30000;
+export const BACK_OFF = (level: number) => (2 ** level) / 4;
+
 export const REDIS = {
 	GUILD_PATTERN: (guild: string) => `*guild:${guild}*`,
-	RESOURCE_PATTERN: (message: string) => `*resource:${message}*`
+	RESOURCE_PATTERN: (message: string) => `*resource:${message}*`,
+	CHANNEL_PATTERN: (channel: string) => `*channel:${channel}*`
 };
 
 export const CHANNELS_PATTERN = /<?#?(\d{17,19})>?/g;
@@ -67,23 +71,42 @@ export const MESSAGES = {
 			}
 		},
 		VERIFICATION: {
-			INIT: `This command will lead you through setting up verification roles in this server. You will need to apply the needed overwrites yourself. If verification is already set up this will overwrite the old settings. Which role should I use as verification role?`,
-			CONFIRM_DELETE: `Are you sure you want to disable and delete the verification setup on this guild? [**Y**es/**N**o]`,
-			FAIL: {
-				NO_ROLE: `Please provide a role to use as verification role!`,
-				ROLE_RESOLVE: `I could not resolve the given arguments to a role, Please provide a role to use as verification role!`,
-				NO_CHANNEL: `Please provide a text channel to use for the verification process!`,
-				CHANNEL_RESOLVE: `I could not resolve the given arguments to a channel, Please provide a text channel to use for the verification process!`,
-				NO_PHRASE: `Please provide a phrase to use for the verification process!`,
-				INTERRUPT: `${PREFIXES.FAIL}Setup canceled.`,
-				CANCEL_DELETE: `${PREFIXES.FAIL}Deletion canceled.`
+			TITLE: {
+				FINISHED: 'Make sure the settings are to your liking.',
+				DONE: `${PREFIXES.SUCCESS}Confirmation role saved.`,
+				FAIL: {
+					ROLE: 'Please provide a role.',
+					CHANNEL: 'Please provide a channel',
+					PHRASE: 'Please provide a phrase',
+					ABORTED: 'Setup cancelled'
+				},
+				SUCCESS: {
+					ROLE: `Please provide a role`,
+					CHANNEL: `Please provide a channel`,
+					PHRASE: `Please provide a phrase`,
+					ABORTED: `Setup cancelled`
+				}
 			},
-			SUCCESS: {
-				ROLE: `${PREFIXES.SUCCESS}Role accepted. Please provide a channel to use for the verification process. Any messages in this channel will be deleted, if a specific phrase is said the member will gain the provided role.`,
-				CHANNEL: `${PREFIXES.SUCCESS}Channel accepted. Please provide a phrase to use for the verification process. If this phrase is said in the specified channel the member will gain the provided role.`,
-				PHRASE: `${PREFIXES.SUCCESS}Prefix accepted. Make sure everything is set up to your liking. [**Y**es/**N**o]`,
-				OK: `${PREFIXES.SUCCESS}Verification process successfully set up! If you want to remove it please use this command again with the \`--disable\` flag.`,
-				OK_DELETE: `${PREFIXES.SUCCESS}The verification process is disabled and the saved data deleted.`
+			DESCRIPTION: {
+				FINISHED: 'Messages in the provided channel will now be deleted if I have the permission to do so. If the user says the given phrase they will gain the associated role if i am able to assign it and they are not in a back-off period. Is this setup ok? [**Y**es | **N**o]',
+				DONE: 'To remove this role setup please run the command with the `--delete` flag. The range of effect depends on the provided options.',
+				FAIL: {
+					ROLE: `${PREFIXES.FAIL}Invalid role. The role you choose has to be below the bots highest role.`,
+					CHANNEL: `${PREFIXES.FAIL}Invalid channel. Remember that i need to read messages too.`,
+					PHRASE: `${PREFIXES.FAIL}Please provide a non-empty phrase`,
+					ABORTED: `${PREFIXES.FAIL}Failed abort...`
+				},
+				SUCCESS: {
+					ROLE: 'This role will be assigned to users if they say the phrase in the provided channel.',
+					CHANNEL: 'The channel to use for this assignable role setup.',
+					PHRASE: 'Phrase users need to say in order to gain the role.',
+					ABORTED: 'Aborted..'
+				}
+
+			},
+			FOOTER: {
+				CANCEL: (timeoutMS: number) => `You can cancel the process at any time by answering "cancel". Timeout after ${timeoutMS / 1000}s.`,
+				BACKOFF: 'To view a users back-off they can use the "cooldown" command.'
 			}
 		}
 	}

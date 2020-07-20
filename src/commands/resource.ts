@@ -42,7 +42,7 @@ export default class extends Command {
 			if (!channelArgs) {
 				return message.channel.send(COMMON.FAIL.MISSING_ARGUMENT('channel'));
 			}
-			const channel = client.resolveChannel(channelArgs, guild, ['text', 'news']) as TextChannel | NewsChannel | undefined;
+			const channel = client.resolveChannel(guild, ['text', 'news'], channelArgs) as TextChannel | NewsChannel | undefined;
 			if (!channel) {
 				return message.channel.send(COMMON.FAIL.RESOLVE(channelArgs, 'channel'));
 			}
@@ -79,7 +79,7 @@ export default class extends Command {
 			return message.channel.send(RESOURCE.FAIL.NOT_FOUND);
 		}
 
-		const targetChannel = await client.resolveChannel(channelID, guild, ['text', 'news']) as TextChannel | NewsChannel | undefined;
+		const targetChannel = await client.resolveChannel(guild, ['text', 'news'], channelID) as TextChannel | NewsChannel | undefined;
 		if (!targetChannel) {
 			if (new RegExp(SNOWFLAKE_PATTERN).exec(channelID)) {
 				const setKey = `guild:${guild.id}:channel:${channelID}`;
