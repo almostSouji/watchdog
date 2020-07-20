@@ -20,6 +20,7 @@ export const REDIS = {
 export const CHANNELS_PATTERN = /<?#?(\d{17,19})>?/g;
 export const ROLES_PATTERN = /<?@?&?(\d{17,19})>?/g;
 export const SNOWFLAKE_PATTERN = /\d{17, 19}/g;
+export const SETUP_ROLE_PATTERN = /guild:(\d{17,19}):channel:(\d{17,19}):phrase:(.+)/g;
 
 export const COLORS = {
 	SUCCESS: '#03b581',
@@ -31,6 +32,10 @@ export const PREFIXES = {
 	FAIL: '',
 	ERROR: '',
 	SUCCESS: ''
+};
+
+export const SUFFIXES = {
+	CONFIRM: '[**Y**es | **N**o]'
 };
 
 export const MESSAGES = {
@@ -70,7 +75,14 @@ export const MESSAGES = {
 				NO_STAFF: `${PREFIXES.SUCCESS}There are currently no staff roles.`
 			}
 		},
-		VERIFICATION: {
+		SETUP_ROLE: {
+			DELETE: {
+				FOOTER: 'You can customize the delete range with the flags --channel and/or --phrase.',
+				ASK_CONFIRMATION: `With the current flags the following keys will be affected. This will not disable pruning in the affected channels! This operation is not reversible. ${SUFFIXES.CONFIRM}`,
+				CANCEL: 'Deletion canceled',
+				DONE: 'Affected setups are deleted.',
+				NO_KEYS: `No keys are affected, command canceled`
+			},
 			TITLE: {
 				FINISHED: 'Make sure the settings are to your liking.',
 				DONE: `${PREFIXES.SUCCESS}Confirmation role saved.`,
@@ -88,7 +100,7 @@ export const MESSAGES = {
 				}
 			},
 			DESCRIPTION: {
-				FINISHED: 'Messages in the provided channel will now be deleted if I have the permission to do so. If the user says the given phrase they will gain the associated role if i am able to assign it and they are not in a back-off period. Is this setup ok? [**Y**es | **N**o]',
+				FINISHED: `Messages in the provided channel will now be deleted if I have the permission to do so. If the user says the given phrase they will gain the associated role if i am able to assign it and they are not in a back-off period. Is this setup ok? ${SUFFIXES.CONFIRM}`,
 				DONE: 'To remove this role setup please run the command with the `--delete` flag. The range of effect depends on the provided options.',
 				FAIL: {
 					ROLE: `${PREFIXES.FAIL}Invalid role. The role you choose has to be below the bots highest role.`,

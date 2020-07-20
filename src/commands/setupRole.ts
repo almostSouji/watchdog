@@ -1,14 +1,14 @@
 import { Command } from '../structures/Command';
 import CommandHandler from '../handlers/CommandHandler';
 import { Message, TextChannel, Role } from 'discord.js';
-import { MESSAGES, COLORS, CONFIRMATION_TIMEOUT } from '../util/constants';
+import { MESSAGES, COLORS, CONFIRMATION_TIMEOUT, SETUP_ROLE_PATTERN } from '../util/constants';
 import { Embed } from '../util/Embed';
-import { Predicate, b64Encode } from '../util';
+import { Predicate, b64Encode, b64Decode } from '../util';
 import * as Lexure from 'lexure';
 import { CerberusClient } from '../structures/Client';
 import { SetupState } from '../structures/SetupState';
 
-const { COMMANDS: { VERIFICATION } } = MESSAGES;
+const { COMMANDS: { SETUP_ROLE } } = MESSAGES;
 
 interface SetupData {
 	role?: Role;
@@ -28,6 +28,13 @@ class StateBuilder {
 		this.client = client;
 	}
 
+	public getPattern(message: Message): string {
+		let pattern = `guild:${message.guild!.id}`;
+		pattern += this.data.channel ? `:channel:${this.data.channel.id}` : ':channel:*';
+		pattern += this.data.phrase ? `:phrase:${b64Encode(this.data.phrase)}` : ':phrase:*';
+		return pattern;
+	}
+
 	public save() {
 		if (!this.reply || !this.reply.guild) return;
 		const { guild } = this.reply;
@@ -44,16 +51,16 @@ class StateBuilder {
 
 		if (this.state.isAborted) {
 			embed.setColor(COLORS.FAIL)
-				.setTitle(VERIFICATION.TITLE.SUCCESS.ABORTED);
+				.setTitle(SETUP_ROLE.TITLE.SUCCESS.ABORTED);
 		} else if (this.state.isFinished) {
 			embed.setColor(COLORS.DEFAULT)
-				.setTitle(VERIFICATION.TITLE.FINISHED)
-				.setDescription(VERIFICATION.DESCRIPTION.FINISHED)
-				.setFooter(VERIFICATION.FOOTER.BACKOFF, this.client.user?.displayAvatarURL());
+				.setTitle(SETUP_ROLE.TITLE.FINISHED)
+				.setDescription(SETUP_ROLE.DESCRIPTION.FINISHED)
+				.setFooter(SETUP_ROLE.FOOTER.BACKOFF, this.client.user?.displayAvatarURL());
 		} else {
 			const missing = this.state.missing(SetupState.COMPLETE);
-			const title = VERIFICATION.TITLE[branch][missing[0]];
-			const desc = VERIFICATION.DESCRIPTION[branch][missing[0]];
+			const title = SETUP_ROLE.TITLE[branch][missing[0]];
+			const desc = SETUP_ROLE.DESCRIPTION[branch][missing[0]];
 			embed.setTitle(title)
 				.setDescription(desc);
 			if (fail) {
@@ -121,8 +128,8 @@ class StateBuilder {
 			if (['y', 'yes'].includes(answer.toLowerCase())) {
 				this.save();
 				const embed = this.getEmbed()
-					.setTitle(VERIFICATION.TITLE.DONE)
-					.setDescription(VERIFICATION.DESCRIPTION.DONE)
+					.setTitle(SETUP_ROLE.TITLE.DONE)
+					.setDescription(SETUP_ROLE.DESCRIPTION.DONE)
 					.setColor(COLORS.SUCCESS);
 				await this.reply?.edit(embed);
 				return;
@@ -157,11 +164,26 @@ class StateBuilder {
 		return this;
 	}
 
+	public applyDeleteFlags(message: Message, args: Lexure.Args): StateBuilder {
+		const channel = message.client.resolveChannel(message.guild!, ['text'], args.option('channel', 'c') ?? undefined);
+		const phrase = args.option('phrase', 'p') ?? undefined;
+
+		if (channel) {
+			this.data.channel = channel as TextChannel;
+			this.state.add('CHANNEL');
+		}
+		if (phrase) {
+			this.data.phrase = phrase;
+			this.state.add('PHRASE');
+		}
+		return this;
+	}
+
 	public getEmbed() {
 		const embed = new Embed();
 
 		if (!this.state.isAborted && !this.state.isFinished) {
-			embed.setFooter(VERIFICATION.FOOTER.CANCEL(CONFIRMATION_TIMEOUT),
+			embed.setFooter(SETUP_ROLE.FOOTER.CANCEL(CONFIRMATION_TIMEOUT),
 				this.client.user!.displayAvatarURL());
 		}
 
@@ -184,6 +206,28 @@ class StateBuilder {
 
 		return embed;
 	}
+
+	public getDeleteEmbed() {
+		const embed = new Embed()
+			.setDescription(SETUP_ROLE.DELETE.ASK_CONFIRMATION)
+			.setFooter(SETUP_ROLE.DELETE.FOOTER, this.client.user?.displayAvatarURL());
+
+		const states = [];
+		if (this.state.has('CHANNEL')) {
+			states.push(`• Channel: ${this.data.channel}`);
+		}
+		if (this.state.has('PHRASE')) {
+			states.push(`• Phrase: ${this.data.phrase}`);
+		}
+		if (states.length) {
+			embed.spliceFields(0, 1, {
+				name: `Accepted settings:`,
+				value: states.join('\n')
+			});
+		}
+
+		return embed;
+	}
 }
 
 export default class extends Command {
@@ -192,9 +236,9 @@ export default class extends Command {
 			aliases: ['rolesetup', 'roleassign'],
 			description: {
 				content: 'Prompt the verification setup. Skips steps depending on flag usage. If you wish to delete one or multiple role setups use the `--delete` flag along with other flags to determine effect range.',
-				usage: '[--role=<role>] [--channel=<channel>] [--phrase=<phrase>]',
+				usage: '[--role=<role>] [--delete] [--channel=<channel>] [--phrase=<phrase>]',
 				flags: {
-					'`-r`, `--role`': 'directly provide a role ',
+					'`-r`, `--role`': 'directly provide a role (not available with `--delete`)',
 					'`-c`, `--channel`': 'directly provide a channel',
 					'`-p`, `--phrase`': 'directly provide a phrase',
 					'`-d`, `--delete`': 'delete based on the given other flags'
@@ -216,14 +260,55 @@ export default class extends Command {
 		if (!override && !member!.hasPermission(this.userPermissions)) {
 			return;
 		}
-		const builder = new StateBuilder(client);
-		try {
-			await builder
-				.applyFlags(message, args)
-				.instruction(message);
-		} catch (e) {
-			builder.state.add('ABORTED');
-			builder.instruction(message);
+
+		if (args.flag('delete', 'd')) {
+			const builder = new StateBuilder(client).applyDeleteFlags(message, args);
+			const pattern = builder.getPattern(message);
+			const keys = await client._scan(pattern);
+			const keytexts = [];
+			for (const key of keys) {
+				const reg = new RegExp(SETUP_ROLE_PATTERN);
+				const res = reg.exec(key)!;
+				const role = await client.red.get(key);
+				keytexts.push(`• Channel: <#${res[2]}> Role: <@&${role}> Phrase: ${b64Decode(res[3])}`);
+			}
+			const embed = builder.getDeleteEmbed();
+			try {
+				if (!keys.length) throw new Error('no keys');
+				embed.addField('Affected Setups:', keytexts.join('\n'))
+					.shorten();
+
+				builder.reply = await message.channel.send(embed);
+
+				const answer = await builder.awaitAnswer(message, builder.identityFilter(message.author.id));
+				if (['y', 'yes'].includes(answer.toLowerCase())) {
+					embed.setColor(COLORS.SUCCESS)
+						.setTitle(SETUP_ROLE.DELETE.DONE)
+						.setDescription('');
+					client._pruneKeys(keys);
+					builder.reply.edit(embed);
+				} else {
+					throw new Error('negative input');
+				}
+			} catch (err) {
+				embed.setColor(COLORS.FAIL)
+					.setTitle(err.message === 'no keys' ? SETUP_ROLE.DELETE.NO_KEYS : SETUP_ROLE.DELETE.CANCEL)
+					.setDescription('');
+				if (builder.reply) {
+					builder.reply.edit(embed);
+				} else {
+					message.channel.send(embed);
+				}
+			}
+		} else {
+			const builder = new StateBuilder(client).applyFlags(message, args);
+			try {
+				await builder
+					.instruction(message);
+			} catch {
+				builder.state.add('ABORTED');
+				builder.instruction(message);
+			}
 		}
 	}
 }
