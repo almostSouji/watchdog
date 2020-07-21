@@ -19,6 +19,7 @@ interface SetupData {
 class StateBuilder {
 	public readonly client: CerberusClient;
 	public readonly data: SetupData = {};
+	public autoPrune = false;
 	public state = new SetupState();
 	public identityFilter = (id: string) => (message: Message) => message.author.id === id;
 
@@ -41,7 +42,9 @@ class StateBuilder {
 		const { role, channel, phrase } = this.data;
 		if (!role || !channel || !phrase) return;
 		const key = `guild:${guild.id}:channel:${channel.id}:phrase:${b64Encode(phrase)}`;
-		this.client.red.sadd(`guild:${guild.id}:prunechannels`, channel.id);
+		if (this.autoPrune) {
+			this.client.red.sadd(`guild:${guild.id}:prunechannels`, channel.id);
+		}
 		this.client.red.set(key, role.id);
 	}
 
@@ -55,7 +58,7 @@ class StateBuilder {
 		} else if (this.state.isFinished) {
 			embed.setColor(COLORS.DEFAULT)
 				.setTitle(SETUP_ROLE.TITLE.FINISHED)
-				.setDescription(SETUP_ROLE.DESCRIPTION.FINISHED)
+				.setDescription(this.autoPrune ? SETUP_ROLE.DESCRIPTION.FINISHED_PRUNE : SETUP_ROLE.DESCRIPTION.FINISHED_NO_PRUNE)
 				.setFooter(SETUP_ROLE.FOOTER.BACKOFF, this.client.user?.displayAvatarURL());
 		} else {
 			const missing = this.state.missing(SetupState.COMPLETE);
@@ -148,6 +151,11 @@ class StateBuilder {
 		const role = message.client.resolveRole(message.guild!, args.option('role', 'r') ?? undefined);
 		const channel = message.client.resolveChannel(message.guild!, ['text'], args.option('channel', 'c') ?? undefined);
 		const phrase = args.option('phrase', 'p') ?? undefined;
+		const autoPrune = args.flag('autoprune', 'a');
+
+		if (autoPrune) {
+			this.autoPrune = true;
+		}
 
 		if (role) {
 			this.data.role = role;
@@ -236,9 +244,10 @@ export default class extends Command {
 			aliases: ['rolesetup', 'roleassign'],
 			description: {
 				content: 'Prompt the verification setup. Skips steps depending on flag usage. If you wish to delete one or multiple role setups use the `--delete` flag along with other flags to determine effect range.',
-				usage: '[--role=<role>] [--delete] [--channel=<channel>] [--phrase=<phrase>]',
+				usage: '[--role=<role>] [--autoprune] [--delete] [--channel=<channel>] [--phrase=<phrase>]',
 				flags: {
 					'`-r`, `--role`': 'directly provide a role (not available with `--delete`)',
+					'`-a`, `--autoprune`': 'set up auto prune for the target channel  (not available with `--delete`)',
 					'`-c`, `--channel`': 'directly provide a channel',
 					'`-p`, `--phrase`': 'directly provide a phrase',
 					'`-d`, `--delete`': 'delete based on the given other flags'

@@ -100,7 +100,8 @@ export const MESSAGES = {
 				}
 			},
 			DESCRIPTION: {
-				FINISHED: `Messages in the provided channel will now be deleted if I have the permission to do so. If the user says the given phrase they will gain the associated role if i am able to assign it and they are not in a back-off period. Is this setup ok? ${SUFFIXES.CONFIRM}`,
+				FINISHED_NO_PRUNE: `If the user says the given phrase in the right channel they will gain the associated role if i am able to assign it and they are not in a back-off period. Is this setup ok? ${SUFFIXES.CONFIRM}`,
+				FINISHED_PRUNE: `Messages in the provided channel will now be deleted if I have the permission to do so. If the user says the given phrase in the right channel they will gain the associated role if i am able to assign it and they are not in a back-off period. Is this setup ok? ${SUFFIXES.CONFIRM}`,
 				DONE: 'To remove this role setup please run the command with the `--delete` flag. The range of effect depends on the provided options.',
 				FAIL: {
 					ROLE: `${PREFIXES.FAIL}Invalid role. The role you choose has to be below the bots highest role.`,
