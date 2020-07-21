@@ -48,6 +48,17 @@ export const MESSAGES = {
 				RESOLVE: (query: string, type: string) => `${PREFIXES.FAIL}I can not resolve \`${query}\` to a \`${type}\`.`
 			}
 		},
+		PRUNE_CHANNEL: {
+			FAIL: {
+				MISSING_PERMISSIONS_USER: `${PREFIXES.FAIL}You can not set up pruning for channels you do not have the permission to manage messages in.`,
+				MISSING_PERMISSIONS_BOT: `${PREFIXES.FAIL}To set up pruning I need permissions to manage messages in the target channel.`,
+				ABORTED: `${PREFIXES.FAIL}Setup cancelled.`
+			},
+			SUCCESS_ADD: (channel: string) => `${PREFIXES.SUCCESS}Starting to prune future messages in ${channel}.`,
+			SUCCESS_REM: (channel: string) => `${PREFIXES.SUCCESS}No longer pruning messages in ${channel}.`,
+			CONFIRM_ADD: (channel: string) => `All future messages in ${channel} will be deleted. Commands can not be used in prune channels. Role assignment phrases will still work. If you are sure you want this please confirm. ${SUFFIXES.CONFIRM}`,
+			CONFIRM_REM: (channel: string) => `I will no longer delete messages from ${channel}. If you are sure you want this please confirm. ${SUFFIXES.CONFIRM}`
+		},
 		RESOURCE: {
 			FAIL: {
 				MISSING_PERMISSIONS_USER: `${PREFIXES.FAIL}You can not manage resources in channels you do not have permissions to manage messages in unless you have a staff role.`,
