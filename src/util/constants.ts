@@ -71,21 +71,6 @@ export const MESSAGES = {
 				EDITED: `${PREFIXES.SUCCESS}Resource edited.`
 			}
 		},
-		STAFF: {
-			FAIL: {
-				ALREADY_STAFF: (role: string) => `${PREFIXES.FAIL}Role \`${role}\` is already a staff role.`,
-				NOT_STAFF: (role: string) => `${PREFIXES.FAIL}Role \`${role}\` is not a staff role.`,
-				MISSING_PERMISSIONS: `${PREFIXES.FAIL}You need the permission to manage this guild to use this command.`
-			},
-			SUCCESS: {
-				ADDED: (role: string) => `${PREFIXES.SUCCESS}Added \`${role}\` to staff roles.`,
-				REMOVED: (role: string) => `${PREFIXES.SUCCESS}Removed \`${role}\` from staff roles.`
-			},
-			INFO: {
-				LIST: (roles: string[]) => `${PREFIXES.SUCCESS}The current staff roles are: ${roles.map(r => `\`${r}\``).join(', ')}.`,
-				NO_STAFF: `${PREFIXES.SUCCESS}There are currently no staff roles.`
-			}
-		},
 		SETUP_ROLE: {
 			DELETE: {
 				FOOTER: 'You can customize the delete range with the flags --channel and/or --phrase.',
@@ -131,6 +116,21 @@ export const MESSAGES = {
 			FOOTER: {
 				CANCEL: (timeoutMS: number) => `You can cancel the process at any time by answering "cancel". Timeout after ${timeoutMS / 1000}s.`,
 				BACKOFF: 'To view a users back-off they can use the "cooldown" command.'
+			}
+		},
+		STAFF: {
+			FAIL: {
+				ALREADY_STAFF: (role: string) => `${PREFIXES.FAIL}Role \`${role}\` is already a staff role.`,
+				NOT_STAFF: (role: string) => `${PREFIXES.FAIL}Role \`${role}\` is not a staff role.`,
+				MISSING_PERMISSIONS: `${PREFIXES.FAIL}You need the permission to manage this guild to use this command.`
+			},
+			SUCCESS: {
+				ADDED: (role: string) => `${PREFIXES.SUCCESS}Added \`${role}\` to staff roles.`,
+				REMOVED: (role: string) => `${PREFIXES.SUCCESS}Removed \`${role}\` from staff roles.`
+			},
+			INFO: {
+				LIST: (roles: string[]) => `${PREFIXES.SUCCESS}The current staff roles are: ${roles.map(r => `\`${r}\``).join(', ')}.`,
+				NO_STAFF: `${PREFIXES.SUCCESS}There are currently no staff roles.`
 			}
 		}
 	}
