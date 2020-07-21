@@ -94,7 +94,7 @@ class StateBuilder {
 
 		if (missing.includes('ROLE')) {
 			const role = this.client.resolveRole(message.guild!, answer);
-			if (role && role.editable) {
+			if (role && role.editable && role.position < (message.member?.roles.highest.position ?? 0)) {
 				this.data.role = role;
 				this.state.add('ROLE');
 				await this.instruction(message);
