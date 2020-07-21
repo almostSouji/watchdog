@@ -3,7 +3,7 @@ import { join } from 'path';
 import { readdirSync } from 'fs';
 import * as Lexure from 'lexure';
 import { CerberusClient } from '../structures/Client';
-import { Message, User, Guild, TextChannel } from 'discord.js';
+import { Message, User, Guild, TextChannel, Permissions } from 'discord.js';
 import * as chalk from 'chalk';
 import { EventEmitter } from 'events';
 
@@ -31,7 +31,8 @@ export default class CommandHandler extends EventEmitter {
 		return this.commands.size;
 	}
 
-	public resolve(query: string): Command | undefined {
+	public resolve(query?: string): Command | undefined {
+		if (!query) return undefined;
 		for (const [k, v] of this.commands) {
 			if (k === query || v.aliases?.includes(query)) {
 				return v;
@@ -68,26 +69,40 @@ export default class CommandHandler extends EventEmitter {
 		const prefix = await this.prefix(message);
 
 		const commandPart = Lexure.extractCommand(s => s.startsWith(prefix) ? prefix.length : null, tokens);
-		if (!commandPart) {
-			this.emit('noCommand', message);
+		const command = this.resolve(commandPart?.value);
+
+		if (command && command.ownerOnly && !(await this.isOwner(message.author))) {
+			this.emit('blocked', 'ownerOnly', command, message);
 			return;
 		}
 
-		const command = this.resolve(commandPart.value);
+		let block = false;
+
+		if (guild) {
+			const shouldPrune = await this.client.red.sismember(`guild:${guild.id}:prunechannels`, channel.id);
+			if (shouldPrune) {
+				block = true;
+				if (message.deletable) {
+					message.delete();
+				}
+			}
+		}
+
 		if (!command) {
 			this.emit('noCommand', message);
 			return;
 		}
-		if (command.ownerOnly && !(await this.isOwner(message.author))) {
-			this.emit('blocked', 'ownerOnly', command, message);
-			return;
-		}
-		if (command.guildOnly && !guild) {
+
+		if (block || (command.guildOnly && !guild)) {
 			this.emit('blocked', 'guildOnly', command, message);
 			return;
 		}
-		if (channel instanceof TextChannel && !channel.permissionsFor(this.client.user!)?.has(['VIEW_CHANNEL', 'SEND_MESSAGES'])) {
-			this.emit('blocked', 'answerImpossible', command, message);
+		const permissions = new Permissions(['VIEW_CHANNEL', 'SEND_MESSAGES']);
+		if (command.clientPermissions) {
+			permissions.add(command.clientPermissions);
+		}
+		if (channel instanceof TextChannel && !channel.permissionsFor(this.client.user!)?.has(permissions)) {
+			this.emit('blocked', 'clientPermissions', command, message);
 			return;
 		}
 

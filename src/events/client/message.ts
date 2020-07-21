@@ -12,16 +12,6 @@ export default class extends Event {
 
 	public async execute(message: Message): Promise<boolean> {
 		const { client } = this.handler;
-		const { guild, channel } = message;
-		if (guild) {
-			const shouldPrune = await client.red.sismember(`guild:${guild.id}:prunechannels`, channel.id);
-			if (shouldPrune) {
-				if (message.deletable) {
-					message.delete();
-				}
-				return false;
-			}
-		}
 
 		await client.commands.handle(message);
 		return true;
