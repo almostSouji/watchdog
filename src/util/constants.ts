@@ -19,6 +19,7 @@ export const REDIS = {
 
 export const CHANNELS_PATTERN = /<?#?(\d{17,19})>?/g;
 export const ROLES_PATTERN = /<?@?&?(\d{17,19})>?/g;
+export const USERS_PATTERN = /<?@?!?(\d{17,19})>?/g;
 export const SNOWFLAKE_PATTERN = /\d{17, 19}/g;
 export const SETUP_ROLE_PATTERN = /guild:(\d{17,19}):channel:(\d{17,19}):phrase:(.+)/g;
 
@@ -46,6 +47,14 @@ export const MESSAGES = {
 				MISSING_ARGUMENT: (arg: string) => `${PREFIXES.FAIL}Missing argument: \`${arg}\`.`,
 				USAGE: (usage: string) => `${PREFIXES.FAIL}Command usage: \`${usage}\`.`,
 				RESOLVE: (query: string, type: string) => `${PREFIXES.FAIL}I can not resolve \`${query}\` to a \`${type}\`.`
+			}
+		},
+		COOLDOWN: {
+			SUCCESS: {
+				PERMANENT: (user: string, isSelf: boolean) => `${isSelf ? 'Your cooldown' : `The cooldown for \`${user}\``} is permanent.`,
+				NO_COOLDOWN: (user: string, isSelf: boolean) => `${isSelf ? 'You are' : `\`${user}\` is`} currently not under cooldown`,
+				COOLDOWN: (user: string, time: string, isSelf: boolean) => `${isSelf ? 'Your remaining cooldown' : `The remaining cooldown for \`${user}\``} is ${time}.`,
+				RESET: (user: string, time: string, isSelf: boolean) => `${isSelf ? 'Your cooldown' : `The cooldown for \`${user}\``} has been reset. It was \`${time}\`.`
 			}
 		},
 		PRUNE_CHANNEL: {

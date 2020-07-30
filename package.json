@@ -12,12 +12,13 @@
 	},
 	"author": "Souji",
 	"dependencies": {
+		"@naval-base/ms": "^3.1.0",
 		"chalk": "^4.1.0",
 		"discord.js": "^12.2.0",
 		"dotenv": "^6.0.0",
 		"fetch": "^1.1.0",
 		"ioredis": "^4.17.3",
-		"lexure": "^0.11.0",
+		"lexure": "^0.13.0",
 		"winston": "^3.3.3"
 	},
 	"devDependencies": {

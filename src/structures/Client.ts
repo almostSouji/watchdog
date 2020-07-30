@@ -1,11 +1,11 @@
 
-import { Client, ClientOptions, Guild, GuildChannel, Role, RoleResolvable, GuildChannelResolvable, BaseManager } from 'discord.js';
+import { Client, ClientOptions, Guild, GuildChannel, Role, RoleResolvable, GuildChannelResolvable, BaseManager, User } from 'discord.js';
 import CommandHandler from '../handlers/CommandHandler';
 import { logger } from '../util/logger';
 import * as Redis from 'ioredis';
 import { Logger } from 'winston';
 import EventHandler from '../handlers/EventHandler';
-import { CHANNELS_PATTERN, ROLES_PATTERN } from '../util/constants';
+import { CHANNELS_PATTERN, ROLES_PATTERN, USERS_PATTERN } from '../util/constants';
 
 interface CerberusConfig {
 	prefix: string;
@@ -71,6 +71,33 @@ export class CerberusClient extends Client {
 	public resolveRole(guild: Guild, query?: string): Role | undefined {
 		if (!query) return undefined;
 		return this.resolveFromManager(query, ROLES_PATTERN, guild.roles);
+	}
+
+	public async resolveUser(query?: string, guild?: Guild): Promise<User | undefined> {
+		if (!query) return undefined;
+		const reg = new RegExp(USERS_PATTERN);
+		const match = reg.exec(query);
+		if (match) {
+			query = match[1];
+			try {
+				const res = await this.users.fetch(query);
+				return res;
+			} catch {
+				return undefined;
+			}
+		}
+		query = query.toLowerCase();
+		if (guild) {
+			try {
+				const res = await guild.members.fetch({ query, time: 1000, limit: 1 }).then(col => col.first());
+				if (res) {
+					return res.user;
+				}
+				return undefined;
+			} catch {
+				return undefined;
+			}
+		}
 	}
 
 	public _scan(pattern: string): Promise<string[]> {
