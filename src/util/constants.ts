@@ -57,6 +57,10 @@ export const MESSAGES = {
 				RESET: (user: string, time: string, isSelf: boolean) => `${isSelf ? 'Your cooldown' : `The cooldown for \`${user}\``} has been reset. It was \`${time}\`.`
 			}
 		},
+		PING: {
+			WAITING: 'waiting for API response...',
+			SUCCESS: (heartbeat: number, latency: number) => `${PREFIXES.SUCCESS}pong! Api latency is ${latency}ms. Average websocket heartbeat: ${heartbeat}ms.`
+		},
 		PRUNE_CHANNEL: {
 			FAIL: {
 				MISSING_PERMISSIONS_USER: `${PREFIXES.FAIL}You can not set up pruning for channels you do not have the permission to manage messages in.`,
