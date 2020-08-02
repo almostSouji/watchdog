@@ -66,6 +66,14 @@ export const MESSAGES = {
 			CONFIRM_ADD: (channel: string) => `All future messages in ${channel} will be deleted. Commands can not be used in prune channels. Role assignment phrases will still work. If you are sure you want this please confirm. ${SUFFIXES.CONFIRM}`,
 			CONFIRM_REM: (channel: string) => `I will no longer delete messages from ${channel}. If you are sure you want this please confirm. ${SUFFIXES.CONFIRM}`
 		},
+		QUIZ: {
+			GENERATING: 'Checking...',
+			SUCCESS: (token: string, url: string) => `Your one use token is \`${token}\`.\n\n ${url}`,
+			FAIL: {
+				PERMANENT: `${PREFIXES.FAIL}You are permanently blocked from quiz participation.`,
+				COOLDOWN: (formatted: string) => `${PREFIXES.FAIL}You can try to request a code again in ${formatted}.`
+			}
+		},
 		RESOURCE: {
 			FAIL: {
 				MISSING_PERMISSIONS_USER: `${PREFIXES.FAIL}You can not manage resources in channels you do not have permissions to manage messages in unless you have a staff role.`,
@@ -142,7 +150,7 @@ export const MESSAGES = {
 		}
 	},
 	QUIZ: {
-		SUCCESS: `${PREFIXES.SUCCESS}Welcome to discord.js official!`,
+		SUCCESS: (server: string) => `${PREFIXES.SUCCESS}Welcome to ${server}!`,
 		FAIL: (time: string) => `${PREFIXES.FAIL}Sorry, that was not it! You can request a new token in ${time}.`
 	}
 };
