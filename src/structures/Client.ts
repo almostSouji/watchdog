@@ -6,6 +6,7 @@ import * as Redis from 'ioredis';
 import { Logger } from 'winston';
 import EventHandler from '../handlers/EventHandler';
 import { CHANNELS_PATTERN, ROLES_PATTERN, USERS_PATTERN } from '../util/constants';
+import QuizHandler from '../handlers/QuizHandler';
 
 interface CerberusConfig {
 	prefix: string;
@@ -15,6 +16,7 @@ declare module 'discord.js' {
 	export interface Client {
 		readonly commands: CommandHandler;
 		readonly config: CerberusConfig;
+		readonly quiz: QuizHandler;
 		readonly logger: Logger;
 		readonly red: Redis.Redis;
 		resolveRole(guild: Guild, query?: string): Role | undefined;
@@ -30,6 +32,7 @@ type GuildChannelType = 'text' | 'news' | 'voice' | 'category' | 'store';
 export class CerberusClient extends Client {
 	public readonly commands = new CommandHandler(this);
 	public readonly events = new EventHandler(this);
+	public readonly quiz = new QuizHandler(this);
 	public readonly config: CerberusConfig;
 	public readonly logger = logger;
 	public readonly red: Redis.Redis = new Redis(6379, 'redis');

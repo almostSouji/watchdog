@@ -14,6 +14,9 @@ async function init() {
 	await client.commands.read(resolve(__dirname, './commands'));
 	await client.events.read(resolve(__dirname, './events/client'));
 	await client.events.read(resolve(__dirname, './events/commandHandler'));
+	if (process.env.QUIZ_ENABLED) {
+		await client.quiz.init();
+	}
 
 	client.login(process.env.TOKEN);
 }

@@ -3,7 +3,14 @@ LABEL name="Cerberus [bot]"
 LABEL version="0.0.1"
 LABEL maintainer="almostSouji"
 ENV TOKEN= \
-	PREFIX= \
+	OWNER=\
+	PREFIX=\
+	QUIZ_URL=\
+	QUIZ_POST=\
+	QUIZ_SECRET=\
+	QUIZ_GUILD=\
+	QUIZ_ROLE=\
+	QUIZ_ENABLED=\
 	FORCE_COLOR=1
 WORKDIR /usr/cerberus
 COPY package.json ./
