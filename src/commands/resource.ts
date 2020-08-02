@@ -1,7 +1,7 @@
 import { Command } from '../structures/Command';
 import CommandHandler from '../handlers/CommandHandler';
 import * as Lexure from 'lexure';
-import { Message, NewsChannel, TextChannel } from 'discord.js';
+import { Message, NewsChannel, TextChannel, FileOptions, MessageOptions, MessageEditOptions } from 'discord.js';
 import { Embed } from '../util/Embed';
 import { MESSAGES, SNOWFLAKE_PATTERN } from '../util/constants';
 
@@ -12,9 +12,11 @@ export default class extends Command {
 		super('resource', handler, {
 			aliases: ['res', 'resources'],
 			description: {
-				content: 'Initiate or edit a shared resource any staff can edit',
+				content: 'Initiate or edit a shared resource any staff can edit. To post as embed use the `--embed` flag. Attached files will be sent as attachments.',
 				usage: 'resource <add <channel> <content>|edit <message> <content>>',
-				flags: {}
+				flags: {
+					'`--embed`, `-e`': 'embed the resource message'
+				}
 			},
 			guildOnly: true,
 			clientPermissions: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'EMBED_LINKS', 'READ_MESSAGE_HISTORY'],
@@ -33,6 +35,8 @@ export default class extends Command {
 		const subCommand = args.single();
 		const overrideRoles = await this.handler.overrideRoles(guild);
 		const override = member?.roles.cache.some(r => overrideRoles.includes(r.id));
+
+		const useEmbed = args.flag('embed', 'e');
 
 		if (!subCommand || !this.subCommands.includes(subCommand)) {
 			return message.channel.send(COMMON.FAIL.NO_SUB_COMMAND(['add', 'edit']));
@@ -54,11 +58,27 @@ export default class extends Command {
 			if (!content) {
 				return message.channel.send(RESOURCE.FAIL.MISSING_CONTENT);
 			}
-			const embed = new Embed().setDescription(content).shorten();
 			if (!channel.permissionsFor(client.user!)?.has(this.clientPermissions)) {
 				return message.channel.send(RESOURCE.FAIL.MISSING_PERMISSIONS_BOT);
 			}
-			const msg = await channel.send(embed);
+
+			const data: MessageOptions = {};
+			if (useEmbed) {
+				data.embed = new Embed().setDescription(content).shorten();
+			} else {
+				data.content = content;
+			}
+
+			const files: FileOptions[] = [];
+			for (const attachment of message.attachments.values()) {
+				files.push({
+					attachment: attachment.url,
+					name: attachment.name
+				});
+			}
+			data.files = files;
+
+			const msg = await channel.send(data);
 			const key = `guild:${guild.id}:resource:${msg.id}`;
 			await client.red.set(key, msg.channel.id);
 			client.red.sadd(`guild:${guild.id}:channel:${msg.channel.id}:resources`, key);
@@ -93,8 +113,15 @@ export default class extends Command {
 		}
 		try {
 			const msg = await targetChannel.messages.fetch(messageArgs);
-			const embed = new Embed().setDescription(content).shorten();
-			await msg.edit(embed);
+			const data: MessageEditOptions = {};
+			if (useEmbed) {
+				data.embed = new Embed().setDescription(content).shorten();
+				data.content = '';
+			} else {
+				data.content = content;
+				data.embed = null;
+			}
+			await msg.edit(data);
 			return message.channel.send(RESOURCE.SUCCESS.EDITED);
 		} catch {
 			if (new RegExp(SNOWFLAKE_PATTERN).exec(messageArgs)) {

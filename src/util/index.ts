@@ -43,4 +43,12 @@ function andP <T>(...predicates: Predicate<T>[]): Predicate<T> {
 	};
 }
 
-export { ellipsis, b64Encode, b64Decode, andP };
+/**
+ * Generate a semi random uid based on current timestamp
+ * @returns {string}
+ */
+function uid() {
+	return (new Date()).getTime().toString(36) + Math.random().toString(36).slice(2);
+}
+
+export { ellipsis, b64Encode, b64Decode, andP, uid };
