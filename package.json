@@ -5,8 +5,6 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "node -r dotenv/config dist/index.js",
-		"test:lex": "tsc && node dist/test_lexer.js",
-		"test:log": "tsc && node dist/test_logger.js",
 		"build": "tsc",
 		"dev": "ts-node-dev src/index.ts",
 		"lint": "eslint src --ext ts",
