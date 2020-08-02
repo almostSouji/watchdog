@@ -30,7 +30,7 @@ export default class extends Command {
 		if (!guild) return;
 
 		const overrideRoles = await this.handler.overrideRoles();
-		const override = member?.hasPermission(this.userPermissions) || member?.roles.cache.some(r => overrideRoles.includes(r.id));
+		const override = member?.permissions.has(this.userPermissions) || member?.roles.cache.some(r => overrideRoles.includes(r.id));
 		const userarg = Lexure.joinTokens(args.many(), null, true);
 		const user = !userarg || !override ? message.author : await client.resolveUser(userarg, guild);
 

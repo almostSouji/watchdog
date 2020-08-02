@@ -266,7 +266,7 @@ export default class extends Command {
 		const overrideRoles = await this.handler.overrideRoles();
 		const override = member?.roles.cache.some(r => overrideRoles.includes(r.id));
 
-		if (!override && !member!.hasPermission(this.userPermissions)) {
+		if (!override && !member!.permissions.has(this.userPermissions)) {
 			return;
 		}
 
