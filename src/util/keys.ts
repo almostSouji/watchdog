@@ -14,6 +14,7 @@ export const KEYS = {
 	ROLE_PHRASE_PATTERN_PHRASE_ALL: ':phrase:*',
 	STAFF_ROLES: 'staffroles',
 	QUIZ: (token: string) => `quiz:token:${token}`,
+	QUIZ_PENDING: 'quiz:pending',
 
 	RESOURCE_PATTERN: (messageID: string) => `*resource:${messageID}*`,
 	CHANNEL_PATTERN: (channelID: string) => `*channel:${channelID}*`

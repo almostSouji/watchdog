@@ -26,8 +26,7 @@ export default class QuizHandler {
 	}
 
 	public async doCheck(): Promise<void> {
-		const pendingKey = 'quiz:pending';
-		const tokens = await this.client.red.smembers(pendingKey);
+		const tokens = await this.client.red.smembers(KEYS.QUIZ_PENDING);
 		const secret = process.env.QUIZ_SECRET;
 		const res = await fetch(process.env.QUIZ_POST!, { method: 'POST', body: JSON.stringify({ tokens, secret }) });
 		const json = await res.json();
@@ -45,7 +44,7 @@ export default class QuizHandler {
 			const userId = await this.client.red.get(key);
 			if (!userId) {
 				handled.push(key);
-				this.client.red.srem(pendingKey, token);
+				this.client.red.srem(KEYS.QUIZ_PENDING, token);
 				continue;
 			}
 			try {
@@ -53,19 +52,19 @@ export default class QuizHandler {
 
 				if (!member) {
 					handled.push(key);
-					this.client.red.srem(pendingKey, token);
+					this.client.red.srem(KEYS.QUIZ_PENDING, token);
 					continue;
 				}
 
 				if (passed.includes(token)) {
 					handled.push(key);
-					this.client.red.srem(pendingKey, token);
+					this.client.red.srem(KEYS.QUIZ_PENDING, token);
 					const role = guild.roles.resolve(process.env.QUIZ_ROLE!);
 					if (!role?.editable) {
 						continue;
 					}
 					await member.roles.add(process.env.QUIZ_ROLE!);
-					member.send(QUIZ.SUCCESS);
+					member.send(QUIZ.SUCCESS(guild.name));
 					continue;
 				}
 
@@ -74,10 +73,12 @@ export default class QuizHandler {
 					const blockKey = KEYS.VERIFICATION_BLOCKED(member.id);
 					const level = await this.client.red.incr(KEYS.VERIFICATION_LEVEL(member.id));
 					const ttl = this.backoff(level);
-					this.client.red.expire(blockKey, ttl);
-					this.client.red.srem(pendingKey, token);
 
-					const formatted = ms(ttl, true);
+					await this.client.red.setnx(blockKey, 1);
+					this.client.red.expire(blockKey, ttl);
+					this.client.red.srem(KEYS.QUIZ_PENDING, token);
+
+					const formatted = ms(ttl * 1000, true);
 					member.send(QUIZ.FAIL(formatted));
 					continue;
 				}
