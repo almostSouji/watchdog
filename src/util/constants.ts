@@ -152,6 +152,10 @@ export const MESSAGES = {
 	},
 	QUIZ: {
 		SUCCESS: (server: string) => `${PREFIXES.SUCCESS}Welcome to ${server}!`,
-		FAIL: (time: string) => `${PREFIXES.FAIL}Sorry, that was not it! You can request a new token in ${time}.`
+		FAIL: {
+			COOLDOWN: (time: string) => `${PREFIXES.FAIL}Sorry, that was not it! You can request a new token in ${time}.`,
+			RETRY: `${PREFIXES.FAIL}Sorry, that was not it! You can request a new token immediately`,
+			PERMANENT: `${PREFIXES.FAIL}Sorry, that was not it! You are permanently blocked from quiz participation.`
+		}
 	}
 };

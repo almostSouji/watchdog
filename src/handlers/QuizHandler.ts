@@ -1,6 +1,6 @@
 import { CerberusClient } from '../structures/Client';
 import fetch from 'node-fetch';
-import { BACK_OFF, MESSAGES } from '../util/constants';
+import { MESSAGES } from '../util/constants';
 import { KEYS } from '../util/keys';
 import ms from '@naval-base/ms';
 
@@ -16,13 +16,6 @@ export default class QuizHandler {
 	public async init(): Promise<void> {
 		this.doCheck();
 		this.interval = this.client.setInterval(this.doCheck.bind(this), 60000);
-	}
-
-
-	private backoff(n: number): number {
-		const days = BACK_OFF(n);
-		const s = days * 24 * 60 * 60;
-		return s;
 	}
 
 	public async doCheck(): Promise<void> {
@@ -64,22 +57,29 @@ export default class QuizHandler {
 						continue;
 					}
 					await member.roles.add(process.env.QUIZ_ROLE!);
-					member.send(QUIZ.SUCCESS(guild.name));
+					await member.send(QUIZ.SUCCESS(guild.name));
 					continue;
 				}
 
 				if (failed.includes(token)) {
 					handled.push(key);
-					const blockKey = KEYS.VERIFICATION_BLOCKED(member.id);
-					const level = await this.client.red.incr(KEYS.VERIFICATION_LEVEL(member.id));
-					const ttl = this.backoff(level);
 
-					await this.client.red.setnx(blockKey, 1);
-					this.client.red.expire(blockKey, ttl);
+					const blockKey = KEYS.VERIFICATION_BLOCKED(member.id);
+					const ttl = await this.client.red.ttl(blockKey);
+
 					this.client.red.srem(KEYS.QUIZ_PENDING, token);
 
+					if (ttl === -2) {
+						await member.send(QUIZ.FAIL.RETRY);
+						return;
+					}
+					if (ttl === -1) {
+						await member.send(QUIZ.FAIL.PERMANENT);
+						return;
+					}
+
 					const formatted = ms(ttl * 1000, true);
-					member.send(QUIZ.FAIL(formatted));
+					await member.send(QUIZ.FAIL.COOLDOWN(formatted));
 					continue;
 				}
 			} catch {

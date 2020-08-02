@@ -1,7 +1,7 @@
 import { Command } from '../structures/Command';
 import CommandHandler from '../handlers/CommandHandler';
 import { Message } from 'discord.js';
-import { MESSAGES } from '../util/constants';
+import { MESSAGES, BACK_OFF } from '../util/constants';
 import { uid } from '../util/';
 import { KEYS } from '../util/keys';
 import ms from '@naval-base/ms';
@@ -19,6 +19,12 @@ export default class extends Command {
 			},
 			dmOnly: true
 		});
+	}
+
+	private backoff(n: number): number {
+		const days = BACK_OFF(n);
+		const s = days * 24 * 60 * 60;
+		return s;
 	}
 
 	public async execute(message: Message): Promise<Message|void> {
@@ -39,7 +45,7 @@ export default class extends Command {
 			const ttl = await client.red.pttl(key);
 
 			if (member.roles.cache.has(process.env.QUIZ_ROLE!)) {
-				return msg.edit(QUIZ.FAIL.ALREADY);
+				return await msg.edit(QUIZ.FAIL.ALREADY);
 			}
 
 			if (ttl === -2) {
@@ -47,15 +53,23 @@ export default class extends Command {
 				const url = process.env.QUIZ_URL!;
 				client.red.sadd(KEYS.QUIZ_PENDING, token);
 				client.red.set(KEYS.QUIZ(token), author.id);
-				return msg.edit(QUIZ.SUCCESS(token, url));
+
+				const blockKey = KEYS.VERIFICATION_BLOCKED(member.id);
+				const level = await client.red.incr(KEYS.VERIFICATION_LEVEL(member.id));
+				const ttl = this.backoff(level);
+
+				await client.red.setnx(blockKey, 1);
+				client.red.expire(blockKey, ttl);
+
+				return await msg.edit(QUIZ.SUCCESS(token, url));
 			}
 
 			if (ttl === -1) {
-				return msg.edit(QUIZ.FAIL.PERMANENT);
+				return await msg.edit(QUIZ.FAIL.PERMANENT);
 			}
 
 			const formatted = ms(ttl, true);
-			return msg.edit(QUIZ.FAIL.COOLDOWN(formatted));
+			return await msg.edit(QUIZ.FAIL.COOLDOWN(formatted));
 		} catch {}
 	}
 }
