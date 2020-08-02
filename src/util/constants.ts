@@ -15,7 +15,7 @@ export const CHANNELS_PATTERN = /<?#?(\d{17,19})>?/g;
 export const ROLES_PATTERN = /<?@?&?(\d{17,19})>?/g;
 export const USERS_PATTERN = /<?@?!?(\d{17,19})>?/g;
 export const SNOWFLAKE_PATTERN = /\d{17, 19}/g;
-export const SETUP_ROLE_PATTERN = /guild:(\d{17,19}):channel:(\d{17,19}):phrase:(.+)/g;
+export const SETUP_ROLE_PATTERN = /channel:(\d{17,19}):phrase:(.+)/g;
 
 export const COLORS = {
 	SUCCESS: '#03b581',

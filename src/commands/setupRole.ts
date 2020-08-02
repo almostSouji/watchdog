@@ -33,7 +33,7 @@ class StateBuilder {
 	public getPattern(): string {
 		let pattern = '';
 		pattern += this.data.channel ? KEYS.ROLE_PHRASE_PATTERN_CHANNEL(this.data.channel.id) : KEYS.ROLE_PHRASE_PATTERN_CHANNEL_ALL;
-		pattern += this.data.phrase ? KEYS.ROLE_PHRASE_PATTERN_PHRASE(this.data.phrase) : KEYS.ROLE_PHRASE_PATTERN_PHRASE_ALL;
+		pattern += this.data.phrase ? KEYS.ROLE_PHRASE_PATTERN_PHRASE(b64Encode(this.data.phrase)) : KEYS.ROLE_PHRASE_PATTERN_PHRASE_ALL;
 		return pattern;
 	}
 
@@ -275,11 +275,12 @@ export default class extends Command {
 			const pattern = builder.getPattern();
 			const keys = await client._scan(pattern);
 			const keytexts = [];
+
 			for (const key of keys) {
 				const reg = new RegExp(SETUP_ROLE_PATTERN);
 				const res = reg.exec(key)!;
 				const role = await client.red.get(key);
-				keytexts.push(`• Channel: <#${res[2]}> Role: <@&${role}> Phrase: ${b64Decode(res[3])}`);
+				keytexts.push(`• Channel: <#${res[1]}> Role: <@&${role}> Phrase: ${b64Decode(res[2])}`);
 			}
 			const embed = builder.getDeleteEmbed();
 			try {
