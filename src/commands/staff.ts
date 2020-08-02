@@ -18,8 +18,7 @@ export default class extends Command {
 				flags: {}
 			},
 			userPermissions: ['MANAGE_GUILD'],
-			guildOnly: true,
-			ownerOnly: true
+			guildOnly: true
 		});
 	}
 
