@@ -71,7 +71,8 @@ export const MESSAGES = {
 			SUCCESS: (token: string, url: string) => `Your one use token is \`${token}\`.\n\n ${url}`,
 			FAIL: {
 				PERMANENT: `${PREFIXES.FAIL}You are permanently blocked from quiz participation.`,
-				COOLDOWN: (formatted: string) => `${PREFIXES.FAIL}You can try to request a code again in ${formatted}.`
+				COOLDOWN: (formatted: string) => `${PREFIXES.FAIL}You can try to request a code again in ${formatted}.`,
+				ALREADY: `${PREFIXES.FAIL}Looks like you already got the quiz role.`
 			}
 		},
 		RESOURCE: {

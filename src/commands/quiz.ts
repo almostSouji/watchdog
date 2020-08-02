@@ -27,9 +27,20 @@ export default class extends Command {
 		if (guild) return;
 
 		try {
+			const targetGuild = client.guilds.resolve(process.env.QUIZ_GUILD!);
+			if (!targetGuild || !targetGuild.available) return;
+			const role = targetGuild.roles.resolve(process.env.QUIZ_ROLE!);
+			if (!role) return;
+			const member = await targetGuild.members.fetch(author);
+			if (!member) return;
+
 			const msg = await message.author.send(QUIZ.GENERATING);
 			const key = KEYS.VERIFICATION_BLOCKED(author.id);
 			const ttl = await client.red.pttl(key);
+
+			if (member.roles.cache.has(process.env.QUIZ_ROLE!)) {
+				return msg.edit(QUIZ.FAIL.ALREADY);
+			}
 
 			if (ttl === -2) {
 				const token = uid();
