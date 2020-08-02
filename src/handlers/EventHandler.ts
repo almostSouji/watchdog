@@ -27,13 +27,13 @@ export default class EventHandler {
 			const emitter = this.emitters.get(event.emitter);
 
 			if (!emitter) {
-				this.client.logger.error(`Missing emitter for ${event.emitter}`);
+				this.client.logger.error(`Missing emitter: ${event.emitter}`);
 				return this.events.size;
 			}
 
 			this.events.set(event.name, event.execute.bind(event));
 			emitter.on(event.name, event.execute.bind(event));
-			this.client.logger.info(`event ${event.name} attached to emitter ${emitter.constructor.name} [${chalk.green('✓')}]`);
+			this.client.logger.info(`event: ${event.name} ${chalk.green('▶️')} ${emitter.constructor.name}`);
 		}
 		return this.events.size;
 	}

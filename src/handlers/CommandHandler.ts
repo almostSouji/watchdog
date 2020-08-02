@@ -26,7 +26,7 @@ export default class CommandHandler extends EventEmitter {
 			const cmd = new cmdClass(this);
 
 			this.commands.set(cmd.id, cmd);
-			this.client.logger.info(`command ${cmd.id} loaded [${chalk.green('✓')}]`);
+			this.client.logger.info(`command ${cmd.id} [${chalk.green('✓')}]`);
 		}
 		return this.commands.size;
 	}
@@ -112,7 +112,7 @@ export default class CommandHandler extends EventEmitter {
 		const res = parser.parse();
 		const args = new Lexure.Args(res);
 
-		this.client.logger.info(`command ${command.id} executed by ${tag}`);
+		this.client.logger.info(`command: ${command.id} by ${tag}`);
 		return command.execute(message, args);
 	}
 }
