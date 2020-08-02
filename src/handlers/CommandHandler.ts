@@ -27,7 +27,7 @@ export default class CommandHandler extends EventEmitter {
 			const cmd = new cmdClass(this);
 
 			this.commands.set(cmd.id, cmd);
-			this.client.logger.info(`command ${cmd.id} [${chalk.green('✓')}]`);
+			this.client.logger.info(`command: ${cmd.id} ${chalk.green('✓')}`);
 		}
 		return this.commands.size;
 	}
