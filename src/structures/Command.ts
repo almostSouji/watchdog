@@ -16,6 +16,7 @@ interface CommandOptions {
 	aliases?: string[];
 	ownerOnly?: boolean;
 	guildOnly?: boolean;
+	dmOnly?: boolean;
 	description: CommandDescription;
 	clientPermissions?: BitFieldResolvable<PermissionString>;
 	userPermissions?: BitFieldResolvable<PermissionString>;
@@ -26,6 +27,7 @@ export abstract class Command {
 	public aliases: string[];
 	public ownerOnly: boolean;
 	public guildOnly: boolean;
+	public dmOnly: boolean;
 	public description: CommandDescription;
 	public clientPermissions: BitFieldResolvable<PermissionString>;
 	public userPermissions: BitFieldResolvable<PermissionString>;
@@ -36,6 +38,7 @@ export abstract class Command {
 		this.description = data?.description;
 		this.ownerOnly = data.ownerOnly ?? false;
 		this.guildOnly = data.guildOnly ?? false;
+		this.dmOnly = data.dmOnly ?? false;
 		this.clientPermissions = data.clientPermissions ?? 0;
 		this.userPermissions = data.userPermissions ?? 0;
 		this.handler = handler;

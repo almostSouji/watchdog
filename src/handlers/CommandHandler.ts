@@ -90,6 +90,11 @@ export default class CommandHandler extends EventEmitter {
 			return;
 		}
 
+		if (command.dmOnly && guild) {
+			this.emit('blocked', 'dmOnly', command, message);
+			return;
+		}
+
 		if (block || (command.guildOnly && !guild)) {
 			this.emit('blocked', 'guildOnly', command, message);
 			return;
