@@ -13,7 +13,7 @@ export default class extends Command {
 		super('resource', handler, {
 			aliases: ['res', 'resources'],
 			description: {
-				content: 'Initiate or edit a shared resource any staff can edit. To post as embed use the `--embed` flag. Attached files will be sent as attachments.',
+				content: 'Initiate or edit a shared resource anyone with permission to manage messages in the resources channel can edit. To post as embed use the `--embed` flag. Attached files will be sent as attachments.',
 				usage: 'resource <add <channel> <content>|edit <message> <content>>',
 				flags: {
 					'`--embed`, `-e`': 'embed the resource message'
@@ -31,11 +31,9 @@ export default class extends Command {
 
 	public async execute(message: Message, args: Lexure.Args): Promise<Message|void> {
 		const { client } = this.handler;
-		const { guild, author, member } = message;
+		const { guild, author } = message;
 		if (!guild) return;
 		const subCommand = args.single();
-		const overrideRoles = await this.handler.overrideRoles();
-		const override = member?.roles.cache.some(r => overrideRoles.includes(r.id));
 
 		const useEmbed = args.flag('embed', 'e');
 
@@ -51,7 +49,7 @@ export default class extends Command {
 			if (!channel) {
 				return message.channel.send(COMMON.FAIL.RESOLVE(channelArgs, 'channel'));
 			}
-			if (!channel.permissionsFor(author)?.has(this.userPermissions) && !override) {
+			if (!channel.permissionsFor(author)?.has(this.userPermissions)) {
 				return message.channel.send(RESOURCE.FAIL.MISSING_PERMISSIONS_USER);
 			}
 			const content = Lexure.joinTokens(args.many(), null, true);
@@ -108,7 +106,7 @@ export default class extends Command {
 			}
 			return message.channel.send(RESOURCE.FAIL.NOT_FOUND);
 		}
-		if (!targetChannel.permissionsFor(author)?.has(this.userPermissions) && !override) {
+		if (!targetChannel.permissionsFor(author)?.has(this.userPermissions)) {
 			return message.channel.send(RESOURCE.FAIL.MISSING_PERMISSIONS_USER);
 		}
 		try {
