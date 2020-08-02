@@ -3,6 +3,7 @@ import CommandHandler from '../handlers/CommandHandler';
 import { Message, Collection, Role } from 'discord.js';
 import * as Lexure from 'lexure';
 import { MESSAGES } from '../util/constants';
+import { KEYS } from '../util/keys';
 
 const { COMMANDS: { COMMON, STAFF } } = MESSAGES;
 
@@ -39,7 +40,7 @@ export default class extends Command {
 			return message.channel.send(COMMON.FAIL.NO_SUB_COMMAND(['add', 'remove', 'list']));
 		}
 		if (this.listAliases.includes(subCommand)) {
-			const overrideRoles = await this.handler.overrideRoles(guild);
+			const overrideRoles = await this.handler.overrideRoles();
 			const roles = new Collection<string, Role>();
 			for (const id of overrideRoles) {
 				const res = client.resolveRole(guild, id);
@@ -59,14 +60,14 @@ export default class extends Command {
 			return message.channel.send(COMMON.FAIL.RESOLVE(roleArgs, 'role'));
 		}
 		if (this.addAliases.includes(subCommand)) {
-			const res = await client.red.sadd(`guild:${guild.id}:overrideroles`, role.id);
+			const res = await client.red.sadd(KEYS.STAFF_ROLES, role.id);
 			if (!res) {
 				return message.channel.send(STAFF.FAIL.ALREADY_STAFF(role.name));
 			}
 			return message.channel.send(STAFF.SUCCESS.ADDED(role.name));
 		}
 		if (this.removeAliases.includes(subCommand)) {
-			const res = await client.red.srem(`guild:${guild.id}:overrideroles`, role.id);
+			const res = await client.red.srem(KEYS.STAFF_ROLES, role.id);
 			if (!res) {
 				return message.channel.send(STAFF.FAIL.NOT_STAFF(role.name));
 			}

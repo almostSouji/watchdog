@@ -3,6 +3,7 @@ import { Event } from '../../structures/Event';
 import { Message } from 'discord.js';
 import { b64Encode } from '../../util';
 import { BACK_OFF } from '../../util/constants';
+import { KEYS } from '../../util/keys';
 
 export default class ReadyEvent extends Event {
 	public constructor(handler: EventHandler) {
@@ -22,7 +23,7 @@ export default class ReadyEvent extends Event {
 		const { guild, client, channel, author } = message;
 		if (!guild) return false;
 
-		const key = `guild:${guild.id}:channel:${channel.id}:phrase:${b64Encode(message.content)}`;
+		const key = KEYS.ROLE_PHRASE(channel.id, b64Encode(message.content));
 		const roleID = await client.red.get(key);
 		if (!roleID) return false;
 		const role = client.resolveRole(guild, roleID);
@@ -31,12 +32,12 @@ export default class ReadyEvent extends Event {
 		}
 
 		try {
-			const key = `guild:${guild.id}:verification:blocked:${author.id}`;
+			const key = KEYS.VERIFICATION_BLOCKED(author.id);
 			const eligible = await client.red.setnx(key, 1);
 			if (!eligible) return false;
 			message.member?.roles.add(role);
 
-			const level = await client.red.incr(`guild:${guild.id}:verification:level:${author.id}`);
+			const level = await client.red.incr(KEYS.VERIFICATION_LEVEL(author.id));
 			client.red.expire(key, this.backoff(level));
 			return true;
 		} catch {

@@ -1,7 +1,7 @@
 import EventHandler from '../../handlers/EventHandler';
 import { Event } from '../../structures/Event';
 import { Message, Collection } from 'discord.js';
-import { REDIS } from '../../util/constants';
+import { KEYS } from '../../util/keys';
 
 export default class extends Event {
 	public constructor(handler: EventHandler) {
@@ -18,7 +18,7 @@ export default class extends Event {
 		if (!guild || !channel) {
 			return false;
 		}
-		const patterns = messages.map(msg => REDIS.RESOURCE_PATTERN(msg.id));
+		const patterns = messages.map(msg => KEYS.RESOURCE_PATTERN(msg.id));
 		client._cleanup(patterns);
 		return true;
 	}

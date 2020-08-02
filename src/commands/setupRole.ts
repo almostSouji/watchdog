@@ -2,6 +2,7 @@ import { Command } from '../structures/Command';
 import CommandHandler from '../handlers/CommandHandler';
 import { Message, TextChannel, Role } from 'discord.js';
 import { MESSAGES, COLORS, CONFIRMATION_TIMEOUT, SETUP_ROLE_PATTERN } from '../util/constants';
+import { KEYS } from '../util/keys';
 import { Embed } from '../util/Embed';
 import { Predicate, b64Encode, b64Decode } from '../util';
 import * as Lexure from 'lexure';
@@ -29,21 +30,20 @@ class StateBuilder {
 		this.client = client;
 	}
 
-	public getPattern(message: Message): string {
-		let pattern = `guild:${message.guild!.id}`;
-		pattern += this.data.channel ? `:channel:${this.data.channel.id}` : ':channel:*';
-		pattern += this.data.phrase ? `:phrase:${b64Encode(this.data.phrase)}` : ':phrase:*';
+	public getPattern(): string {
+		let pattern = '';
+		pattern += this.data.channel ? KEYS.ROLE_PHRASE_PATTERN_CHANNEL(this.data.channel.id) : KEYS.ROLE_PHRASE_PATTERN_CHANNEL_ALL;
+		pattern += this.data.phrase ? KEYS.ROLE_PHRASE_PATTERN_PHRASE(this.data.phrase) : KEYS.ROLE_PHRASE_PATTERN_PHRASE_ALL;
 		return pattern;
 	}
 
 	public save() {
 		if (!this.reply || !this.reply.guild) return;
-		const { guild } = this.reply;
 		const { role, channel, phrase } = this.data;
 		if (!role || !channel || !phrase) return;
-		const key = `guild:${guild.id}:channel:${channel.id}:phrase:${b64Encode(phrase)}`;
+		const key = KEYS.ROLE_PHRASE(channel.id, b64Encode(phrase));
 		if (this.autoPrune) {
-			this.client.red.sadd(`guild:${guild.id}:prunechannels`, channel.id);
+			this.client.red.sadd(KEYS.PRUNE_CHANNELS, channel.id);
 		}
 		this.client.red.set(key, role.id);
 	}
@@ -263,7 +263,7 @@ export default class extends Command {
 		const { client } = this.handler;
 		const { guild, member } = message;
 		if (!guild) return;
-		const overrideRoles = await this.handler.overrideRoles(guild);
+		const overrideRoles = await this.handler.overrideRoles();
 		const override = member?.roles.cache.some(r => overrideRoles.includes(r.id));
 
 		if (!override && !member!.hasPermission(this.userPermissions)) {
@@ -272,7 +272,7 @@ export default class extends Command {
 
 		if (args.flag('delete', 'd')) {
 			const builder = new StateBuilder(client).applyDeleteFlags(message, args);
-			const pattern = builder.getPattern(message);
+			const pattern = builder.getPattern();
 			const keys = await client._scan(pattern);
 			const keytexts = [];
 			for (const key of keys) {

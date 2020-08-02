@@ -1,7 +1,7 @@
 import EventHandler from '../../handlers/EventHandler';
 import { Event } from '../../structures/Event';
 import { Message } from 'discord.js';
-import { REDIS } from '../../util/constants';
+import { KEYS } from '../../util/keys';
 
 export default class extends Event {
 	public constructor(handler: EventHandler) {
@@ -16,7 +16,7 @@ export default class extends Event {
 			return false;
 		}
 		const { client } = this.handler;
-		client._cleanup([REDIS.RESOURCE_PATTERN(message.id)]);
+		client._cleanup([KEYS.RESOURCE_PATTERN(message.id)]);
 		return true;
 	}
 }

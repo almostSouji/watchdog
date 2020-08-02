@@ -3,9 +3,10 @@ import { join } from 'path';
 import { readdirSync } from 'fs';
 import * as Lexure from 'lexure';
 import { CerberusClient } from '../structures/Client';
-import { Message, User, Guild, TextChannel, Permissions } from 'discord.js';
+import { Message, User, TextChannel, Permissions } from 'discord.js';
 import * as chalk from 'chalk';
 import { EventEmitter } from 'events';
+import { KEYS } from '../util/keys';
 
 export default class CommandHandler extends EventEmitter {
 	private readonly commands = new Map<string, Command>();
@@ -41,20 +42,16 @@ export default class CommandHandler extends EventEmitter {
 		return undefined;
 	}
 
-	public async prefix(message: Message): Promise<string> {
-		if (message.guild) {
-			const gp = await this.client.red.hget(`guild:${message.guild.id}:settings`, 'prefix');
-			return gp ?? await this.client.red.hget('global:settings', 'prefix') ?? this.client.config.prefix;
-		}
-		return await this.client.red.hget('global:settings', 'prefix') ?? this.client.config.prefix;
+	public async prefix(): Promise<string> {
+		return await this.client.red.hget(KEYS.SETTINGS, 'prefix') ?? this.client.config.prefix;
 	}
 
 	public async isOwner(user: User): Promise<boolean> {
-		return Boolean(await this.client.red.sismember('bot:owners', user.id));
+		return Boolean(await this.client.red.sismember(KEYS.OWNERS, user.id));
 	}
 
-	public async overrideRoles(guild: Guild): Promise<string[]> {
-		const res = await this.client.red.smembers(`guild:${guild.id}:overrideroles`);
+	public async overrideRoles(): Promise<string[]> {
+		const res = await this.client.red.smembers(KEYS.STAFF_ROLES);
 		return res;
 	}
 
@@ -66,7 +63,7 @@ export default class CommandHandler extends EventEmitter {
 				['“', '”']
 			]);
 		const tokens = lexer.lex();
-		const prefix = await this.prefix(message);
+		const prefix = await this.prefix();
 
 		const commandPart = Lexure.extractCommand(s => s.startsWith(prefix) ? prefix.length : null, tokens);
 		const command = this.resolve(commandPart?.value);
@@ -79,7 +76,7 @@ export default class CommandHandler extends EventEmitter {
 		let block = false;
 
 		if (guild) {
-			const shouldPrune = await this.client.red.sismember(`guild:${guild.id}:prunechannels`, channel.id);
+			const shouldPrune = await this.client.red.sismember(KEYS.PRUNE_CHANNELS, channel.id);
 			if (shouldPrune) {
 				block = true;
 				if (message.deletable) {

@@ -4,6 +4,7 @@ import { Message } from 'discord.js';
 import * as Lexure from 'lexure';
 import ms from '@naval-base/ms';
 import { MESSAGES } from '../util/constants';
+import { KEYS } from '../util/keys';
 const { COMMANDS: { COOLDOWN, COMMON } } = MESSAGES;
 
 export default class extends Command {
@@ -28,7 +29,7 @@ export default class extends Command {
 
 		if (!guild) return;
 
-		const overrideRoles = await this.handler.overrideRoles(guild);
+		const overrideRoles = await this.handler.overrideRoles();
 		const override = member?.hasPermission(this.userPermissions) || member?.roles.cache.some(r => overrideRoles.includes(r.id));
 		const userarg = Lexure.joinTokens(args.many(), null, true);
 		const user = !userarg || !override ? message.author : await client.resolveUser(userarg, guild);
@@ -38,7 +39,7 @@ export default class extends Command {
 		}
 
 		const reset = args.flag('reset', 'r');
-		const key = `guild:${guild.id}:verification:blocked:${user.id}`;
+		const key = KEYS.VERIFICATION_BLOCKED(user.id);
 		const ttl = await client.red.pttl(key);
 		const isSelf = user.id === member?.id;
 

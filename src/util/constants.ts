@@ -11,12 +11,6 @@ export const EMBED_LIMITS = {
 export const CONFIRMATION_TIMEOUT = 30000;
 export const BACK_OFF = (level: number) => (2 ** level) / 4;
 
-export const REDIS = {
-	GUILD_PATTERN: (guild: string) => `*guild:${guild}*`,
-	RESOURCE_PATTERN: (message: string) => `*resource:${message}*`,
-	CHANNEL_PATTERN: (channel: string) => `*channel:${channel}*`
-};
-
 export const CHANNELS_PATTERN = /<?#?(\d{17,19})>?/g;
 export const ROLES_PATTERN = /<?@?&?(\d{17,19})>?/g;
 export const USERS_PATTERN = /<?@?!?(\d{17,19})>?/g;
@@ -146,5 +140,9 @@ export const MESSAGES = {
 				NO_STAFF: `${PREFIXES.SUCCESS}There are currently no staff roles.`
 			}
 		}
+	},
+	QUIZ: {
+		SUCCESS: `${PREFIXES.SUCCESS}Welcome to discord.js official!`,
+		FAIL: (time: string) => `${PREFIXES.FAIL}Sorry, that was not it! You can request a new token in ${time}.`
 	}
 };

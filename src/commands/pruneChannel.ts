@@ -3,6 +3,7 @@ import CommandHandler from '../handlers/CommandHandler';
 import { Message, TextChannel } from 'discord.js';
 import * as Lexure from 'lexure';
 import { MESSAGES, CONFIRMATION_TIMEOUT } from '../util/constants';
+import { KEYS } from '../util/keys';
 
 const { COMMANDS: { COMMON, PRUNE_CHANNEL } } = MESSAGES;
 
@@ -24,7 +25,7 @@ export default class extends Command {
 		const { client } = this.handler;
 		const { guild, member, channel, author } = message;
 		if (!(channel instanceof TextChannel)) return;
-		const overrideRoles = await this.handler.overrideRoles(guild!);
+		const overrideRoles = await this.handler.overrideRoles();
 		const override = member?.roles.cache.some(r => overrideRoles.includes(r.id));
 
 		if (!channel.permissionsFor(author)?.has(this.userPermissions) && !override) {
@@ -49,7 +50,7 @@ export default class extends Command {
 			message.channel.send(PRUNE_CHANNEL.FAIL.MISSING_PERMISSIONS_BOT);
 			return;
 		}
-		const key = `guild:${guild?.id}:prunechannels`;
+		const key = KEYS.PRUNE_CHANNELS;
 		const exists = await client.red.sismember(key, target.id);
 		const content = exists ? PRUNE_CHANNEL.CONFIRM_REM(target.toString()) : PRUNE_CHANNEL.CONFIRM_ADD(target.toString());
 		const reply = await message.channel.send(content);

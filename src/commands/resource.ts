@@ -4,6 +4,7 @@ import * as Lexure from 'lexure';
 import { Message, NewsChannel, TextChannel, FileOptions, MessageOptions, MessageEditOptions } from 'discord.js';
 import { Embed } from '../util/Embed';
 import { MESSAGES, SNOWFLAKE_PATTERN } from '../util/constants';
+import { KEYS } from '../util/keys';
 
 const { COMMANDS: { COMMON, RESOURCE } } = MESSAGES;
 
@@ -33,7 +34,7 @@ export default class extends Command {
 		const { guild, author, member } = message;
 		if (!guild) return;
 		const subCommand = args.single();
-		const overrideRoles = await this.handler.overrideRoles(guild);
+		const overrideRoles = await this.handler.overrideRoles();
 		const override = member?.roles.cache.some(r => overrideRoles.includes(r.id));
 
 		const useEmbed = args.flag('embed', 'e');
@@ -53,8 +54,7 @@ export default class extends Command {
 			if (!channel.permissionsFor(author)?.has(this.userPermissions) && !override) {
 				return message.channel.send(RESOURCE.FAIL.MISSING_PERMISSIONS_USER);
 			}
-			const content = args.many().map(a => `${a.raw}${a.trailing}`).join(' ')
-				.trim();
+			const content = Lexure.joinTokens(args.many(), null, true);
 			if (!content) {
 				return message.channel.send(RESOURCE.FAIL.MISSING_CONTENT);
 			}
@@ -79,10 +79,10 @@ export default class extends Command {
 			data.files = files;
 
 			const msg = await channel.send(data);
-			const key = `guild:${guild.id}:resource:${msg.id}`;
+			const key = KEYS.RESOURCE(msg.id);
 			await client.red.set(key, msg.channel.id);
-			client.red.sadd(`guild:${guild.id}:channel:${msg.channel.id}:resources`, key);
-			const prefix = await this.handler.prefix(message);
+			client.red.sadd(KEYS.RESOURCES_PER_CHANNEL(msg.channel.id), key);
+			const prefix = await this.handler.prefix();
 			return message.channel.send(RESOURCE.SUCCESS.SENT(prefix, msg.id));
 		}
 		const messageArgs = args.single();
@@ -94,7 +94,7 @@ export default class extends Command {
 			return message.channel.send(RESOURCE.FAIL.MISSING_CONTENT);
 		}
 
-		const channelID = await client.red.get(`guild:${guild.id}:resource:${messageArgs}`);
+		const channelID = await client.red.get(KEYS.RESOURCE(messageArgs));
 		if (!channelID) {
 			return message.channel.send(RESOURCE.FAIL.NOT_FOUND);
 		}
@@ -102,7 +102,7 @@ export default class extends Command {
 		const targetChannel = await client.resolveChannel(guild, ['text', 'news'], channelID) as TextChannel | NewsChannel | undefined;
 		if (!targetChannel) {
 			if (new RegExp(SNOWFLAKE_PATTERN).exec(channelID)) {
-				const setKey = `guild:${guild.id}:channel:${channelID}:resources`;
+				const setKey = KEYS.RESOURCES_PER_CHANNEL(channelID);
 				const keys = await client.red.smembers(setKey);
 				client._pruneKeys([...keys, setKey]);
 			}
@@ -125,9 +125,9 @@ export default class extends Command {
 			return message.channel.send(RESOURCE.SUCCESS.EDITED);
 		} catch {
 			if (new RegExp(SNOWFLAKE_PATTERN).exec(messageArgs)) {
-				const key = `guild:${guild.id}:resource:${messageArgs}`;
+				const key = KEYS.RESOURCE(messageArgs);
 				client.red.del(key);
-				client.red.srem(`guild:${guild.id}:channel:${targetChannel}:resources`, key);
+				client.red.srem(KEYS.RESOURCES_PER_CHANNEL(targetChannel.id), key);
 			}
 			return message.channel.send(RESOURCE.FAIL.NOT_FOUND);
 		}

@@ -1,7 +1,7 @@
 import EventHandler from '../../handlers/EventHandler';
 import { Event } from '../../structures/Event';
 import { DMChannel, TextChannel } from 'discord.js';
-import { REDIS } from '../../util/constants';
+import { KEYS } from '../../util/keys';
 
 export default class extends Event {
 	public constructor(handler: EventHandler) {
@@ -16,10 +16,10 @@ export default class extends Event {
 			return false;
 		}
 		const { client } = this.handler;
-		const setKey = `guild:${channel.guild.id}:channel:${channel.id}`;
+		const setKey = KEYS.RESOURCES_PER_CHANNEL(channel.id);
 		const keys = await client.red.smembers(setKey);
-		client.red.srem(`guild:${channel.guild.id}:prunechannels`, channel.id);
-		client._cleanup([...keys, setKey, REDIS.CHANNEL_PATTERN(channel.id)]);
+		client.red.srem(KEYS.PRUNE_CHANNELS, channel.id);
+		client._cleanup([...keys, setKey, KEYS.CHANNEL_PATTERN(channel.id)]);
 		return true;
 	}
 }
