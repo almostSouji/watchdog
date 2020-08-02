@@ -20,7 +20,7 @@
 		"dotenv": "^6.0.0",
 		"fetch": "^1.1.0",
 		"ioredis": "^4.17.3",
-		"lexure": "^0.13.0",
+		"lexure": "^0.14.1",
 		"winston": "^3.3.3"
 	},
 	"devDependencies": {
@@ -33,7 +33,6 @@
 		"@typescript-eslint/parser": "^2.20.0",
 		"eslint": "^6.8.0",
 		"eslint-config-marine": "^6.0.0",
-		"install": "^0.13.0",
 		"typescript": "^3.8.3"
 	},
 	"eslintConfig": {
