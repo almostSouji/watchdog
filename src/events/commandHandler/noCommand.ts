@@ -32,6 +32,9 @@ export default class ReadyEvent extends Event {
 		}
 
 		try {
+			if (message.member?.roles.resolve(roleID)) {
+				return false;
+			}
 			const key = KEYS.VERIFICATION_BLOCKED(author.id);
 			const eligible = await client.red.setnx(key, 1);
 			if (!eligible) return false;
