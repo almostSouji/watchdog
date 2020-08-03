@@ -46,9 +46,11 @@ export const MESSAGES = {
 		COOLDOWN: {
 			SUCCESS: {
 				PERMANENT: (user: string, isSelf: boolean) => `${isSelf ? 'Your cooldown' : `The cooldown for \`${user}\``} is permanent.`,
-				NO_COOLDOWN: (user: string, isSelf: boolean) => `${isSelf ? 'You are' : `\`${user}\` is`} currently not under cooldown`,
+				NO_COOLDOWN: (user: string, isSelf: boolean) => `${isSelf ? 'You are' : `\`${user}\` is`} currently not under cooldown.`,
 				COOLDOWN: (user: string, time: string, isSelf: boolean) => `${isSelf ? 'Your remaining cooldown' : `The remaining cooldown for \`${user}\``} is ${time}.`,
-				RESET: (user: string, time: string, isSelf: boolean) => `${isSelf ? 'Your cooldown' : `The cooldown for \`${user}\``} has been reset. It was \`${time}\`.`
+				RESET_SELF_SINGLE: (scope: string) => `${PREFIXES.SUCCESS}Your ${scope} has been reset.`,
+				RESET_SELF_MULTI: (scope: string) => `${PREFIXES.SUCCESS}Your ${scope} have been reset.`,
+				RESET_OTHER: (scope: string, user: string) => `${PREFIXES.SUCCESS} The ${scope} of \`${user}\` has been reset.`
 			}
 		},
 		PING: {
