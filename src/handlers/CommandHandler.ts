@@ -62,11 +62,11 @@ export default class CommandHandler extends EventEmitter {
 				['"', '"'],
 				['“', '”']
 			]);
-		const tokens = lexer.lex();
-		const prefix = await this.prefix();
 
-		const commandPart = Lexure.extractCommand(s => s.startsWith(prefix) ? prefix.length : null, tokens);
-		const command = this.resolve(commandPart?.value);
+		const prefix = await this.prefix();
+		const r = lexer.lexCommand(s => s.startsWith(prefix) ? prefix.length : null);
+		if (!r) return;
+		const command = this.resolve(r[0].value);
 
 		if (command && command.ownerOnly && !(await this.isOwner(message.author))) {
 			this.emit('blocked', 'ownerOnly', command, message);
@@ -108,7 +108,7 @@ export default class CommandHandler extends EventEmitter {
 			return;
 		}
 
-		const parser = new Lexure.Parser(tokens)
+		const parser = new Lexure.Parser(r[1]())
 			.setUnorderedStrategy(Lexure.longShortStrategy());
 
 		const res = parser.parse();
