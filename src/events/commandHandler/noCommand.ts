@@ -2,7 +2,7 @@ import EventHandler from '../../handlers/EventHandler';
 import { Event } from '../../structures/Event';
 import { Message } from 'discord.js';
 import { b64Encode } from '../../util';
-import { BACK_OFF } from '../../util/constants';
+import { BACK_OFF_SEC } from '../../util/constants';
 import { KEYS } from '../../util/keys';
 
 export default class ReadyEvent extends Event {
@@ -11,12 +11,6 @@ export default class ReadyEvent extends Event {
 			emitter: 'command',
 			name: 'noCommand'
 		});
-	}
-
-	private backoff(n: number): number {
-		const days = BACK_OFF(n);
-		const s = days * 24 * 60 * 60;
-		return s;
 	}
 
 	public async execute(message: Message): Promise<boolean> {
@@ -41,7 +35,7 @@ export default class ReadyEvent extends Event {
 			message.member?.roles.add(role);
 
 			const level = await client.red.incr(KEYS.VERIFICATION_LEVEL(author.id));
-			client.red.expire(key, this.backoff(level));
+			client.red.expire(key, BACK_OFF_SEC(level));
 			return true;
 		} catch {
 			return false;

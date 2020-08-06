@@ -9,7 +9,7 @@ export const EMBED_LIMITS = {
 };
 
 export const CONFIRMATION_TIMEOUT = 30000;
-export const BACK_OFF = (level: number) => (2 ** level) / 4;
+export const BACK_OFF_SEC = (level: number) => ((2 ** level) / 4) * 24 * 60 * 60;
 
 export const CHANNELS_PATTERN = /<?#?(\d{17,19})>?/g;
 export const ROLES_PATTERN = /<?@?&?(\d{17,19})>?/g;

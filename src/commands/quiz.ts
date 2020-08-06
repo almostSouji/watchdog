@@ -1,7 +1,7 @@
 import { Command } from '../structures/Command';
 import CommandHandler from '../handlers/CommandHandler';
 import { Message } from 'discord.js';
-import { MESSAGES, BACK_OFF } from '../util/constants';
+import { MESSAGES, BACK_OFF_SEC } from '../util/constants';
 import { uid } from '../util/';
 import { KEYS } from '../util/keys';
 import ms from '@naval-base/ms';
@@ -19,12 +19,6 @@ export default class extends Command {
 			},
 			dmOnly: true
 		});
-	}
-
-	private backoff(n: number): number {
-		const days = BACK_OFF(n);
-		const s = days * 24 * 60 * 60;
-		return s;
 	}
 
 	public async execute(message: Message): Promise<Message|void> {
@@ -56,7 +50,7 @@ export default class extends Command {
 
 				const blockKey = KEYS.VERIFICATION_BLOCKED(member.id);
 				const level = await client.red.incr(KEYS.VERIFICATION_LEVEL(member.id));
-				const ttl = this.backoff(level);
+				const ttl = BACK_OFF_SEC(level);
 
 				await client.red.setnx(blockKey, 1);
 				client.red.expire(blockKey, ttl);
